@@ -11,7 +11,7 @@ open Farmer.Builders
 Target.initEnvironment ()
 
 let sharedPath = Path.getFullName "./src/Shared"
-let serverPath = Path.getFullName "./src/Server"
+let serverPath = Path.getFullName "./src/Server/Server.App"
 let deployDir = Path.getFullName "./deploy"
 let sharedTestsPath = Path.getFullName "./tests/Shared"
 let serverTestsPath = Path.getFullName "./tests/Server"

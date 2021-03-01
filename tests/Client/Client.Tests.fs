@@ -2,18 +2,19 @@ module Client.Tests
 
 open Fable.Mocha
 
-open Index
+open Client.App.State
+open Client.App.Types
 open Shared
 
 let client = testList "Client" [
     testCase "Added todo" <| fun _ ->
-        let newTodo = Todo.create "new todo"
+        let newTodo = ChessGame.defaultGame
         let model, _ = init ()
 
-        let model, _ = update (AddedTodo newTodo) model
+        let model, _ = update (AddedChessGame newTodo) model
 
-        Expect.equal 1 model.Todos.Length "There should be 1 todo"
-        Expect.equal newTodo model.Todos.[0] "Todo should equal new todo"
+        Expect.equal 1 model.ChessGames.Length "There should be 1 todo"
+        Expect.equal newTodo model.ChessGames.[0] "Todo should equal new todo"
 ]
 
 let all =

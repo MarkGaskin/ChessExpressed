@@ -2,23 +2,43 @@ namespace Shared
 
 open System
 
-[<CLIMutable>]
-type Todo =
-    { Id : Guid
-      Description : string }
+type ChessGameResult =
+    | WhiteWin
+    | BlackWin
+    | Draw
 
-module Todo =
+[<CLIMutable>]
+type ChessGame =
+    { GameId: Guid
+      PlayerIdWhite: Guid
+      PlayerIdBlack: Guid
+      EloWhite: int
+      EloBlack: int
+      Date: DateTime
+      Event: string
+      Result: ChessGameResult
+      GameNotation: string}
+
+module ChessGame =
     let isValid (description: string) =
         String.IsNullOrWhiteSpace description |> not
 
-    let create (description: string) =
-        { Id = Guid.NewGuid()
-          Description = description }
+    let defaultGame =
+        { GameId = Guid.Empty
+          PlayerIdWhite = Guid.Empty
+          PlayerIdBlack = Guid.Empty
+          EloWhite = 0
+          EloBlack = 0
+          Date = DateTime.Now
+          Event = ""
+          Result = Draw
+          GameNotation = ""}
+        
 
 module Route =
     let builder typeName methodName =
         sprintf "/api/%s/%s" typeName methodName
 
-type ITodosApi =
-    { getTodos : unit -> Async<Todo list>
-      addTodo : Todo -> Async<Todo> }
+type IChessGameApi =
+    { getChessGames : unit -> Async<ChessGame list>
+      addChessGame : ChessGame -> Async<ChessGame> }

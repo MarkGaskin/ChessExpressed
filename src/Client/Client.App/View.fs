@@ -74,7 +74,12 @@ let view (model : Model) (dispatch : Msg -> unit) =
                     Column.Width (Screen.All, Column.Is6)
                     Column.Offset (Screen.All, Column.Is3)
                 ] [
-                    chessBoard [ ChessBoardProps.Position "start"; ChessBoardProps.Width 560; ChessBoardProps.TransitionDuration 500] []
+                    chessBoard [ ChessBoardProps.Position "start";
+                                 ChessBoardProps.Width 560;
+                                 ChessBoardProps.TransitionDuration 500;
+                                 ChessBoardProps.DarkSquareStyle darkSquareStyle
+                                 ChessBoardProps.LightSquareStyle lightSquareStyle
+                                 ChessBoardProps.SquareStyles squareStyle ] []
                 ]
             ]
 

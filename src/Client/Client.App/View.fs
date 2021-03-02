@@ -4,7 +4,12 @@ open Shared
 open Types
 open Fable.React
 open Fable.React.Props
+open Fable.Core
+open Fable.Core.JsInterop
 open Fulma
+
+let inline chessBoard (props : ChessBoardProps list) (elems : ReactElement list) : ReactElement =
+    ofImport "default" "chessboardjsx" (keyValueList CaseRules.LowerFirst props) elems
 
 let navBrand =
     Navbar.Brand.div [ ] [
@@ -69,9 +74,9 @@ let view (model : Model) (dispatch : Msg -> unit) =
                     Column.Width (Screen.All, Column.Is6)
                     Column.Offset (Screen.All, Column.Is3)
                 ] [
-                    Heading.p [ Heading.Modifiers [ Modifier.TextAlignment (Screen.All, TextAlignment.Centered) ] ] [ str "ChessExpressed" ]
-                    containerBox model dispatch
+                    chessBoard [ ChessBoardProps.Position "start"; ChessBoardProps.Width 560; ChessBoardProps.TransitionDuration 500] []
                 ]
             ]
+
         ]
     ]

@@ -17,14 +17,19 @@ type Storage () =
     member _.GetChessPlayers () =
         chessPlayers.FindAll () |> List.ofSeq
 
-    /// Tries to add a ches player item to the collection.
+    /// Tries to add a chess player item to the collection.
     member _.AddChessPlayer (chessPlayer:ChessPlayer) =
         chessPlayers.Insert chessPlayer |> ignore
         Ok ()
 
-    /// Tries to add a ches player item to the collection.
+    /// Tries to delete a chess player item from the collection.
     member _.DeleteChessPlayer (chessPlayer:ChessPlayer) =
         chessPlayers.Delete (BsonValue(chessPlayer.Id)) |> ignore
+        Ok ()
+
+    /// Tries to update a chess player item in the collection.
+    member _.UpdateChessPlayer (chessPlayer:ChessPlayer) =
+        chessPlayers.Update chessPlayer |> ignore
         Ok ()
 
     /// Retrieves all chess game items.
@@ -39,6 +44,11 @@ type Storage () =
     /// Tries to add a chess game item to the collection.
     member _.DeleteChessGame (chessGame:ChessGame) =
         chessGames.Delete (BsonValue(chessGame.Id)) |> ignore
+        Ok ()
+
+    /// Tries to update a chess game item to the collection.
+    member _.UpdateChessGame (chessGame:ChessGame) =
+        chessGames.Update chessGame |> ignore
         Ok ()
 
 let storage = Storage()
@@ -56,6 +66,11 @@ let CEApi =
               match storage.DeleteChessGame chessGame with
               Ok () -> return chessGame
               | Error e -> return failwith e }
+      updateChessGame =
+          fun chessGame -> async {
+              match storage.UpdateChessGame chessGame with
+              Ok () -> return chessGame
+              | Error e -> return failwith e }
       getChessPlayers = fun () -> async { return storage.GetChessPlayers() }
       addChessPlayer =
           fun chessPlayer -> async {
@@ -68,4 +83,10 @@ let CEApi =
               match storage.DeleteChessPlayer chessPlayer with
               Ok () -> return chessPlayer
               | Error e -> return failwith e }
+      updateChessPlayer =
+          fun chessPlayer -> async {
+              match storage.UpdateChessPlayer chessPlayer with
+              | Ok () -> return chessPlayer
+              | Error e -> return failwith e
+          }
     }

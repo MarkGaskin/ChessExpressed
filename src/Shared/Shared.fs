@@ -44,8 +44,22 @@ module ChessPlayer =
         }
 
     let isEqual chessPlayer1 chessPlayer2 =
-        chessPlayer1.FirstName = chessPlayer2.FirstName &&
-        chessPlayer1.LastName = chessPlayer2.LastName
+        if String.IsNullOrWhiteSpace chessPlayer1.FirstName then
+            chessPlayer1.NickName = chessPlayer2.NickName
+        else
+            chessPlayer1.FirstName = chessPlayer2.FirstName &&
+            String.IsNullOrWhiteSpace chessPlayer1.LastName &&
+            chessPlayer1.LastName = chessPlayer2.LastName &&
+            chessPlayer1.NickName = chessPlayer2.NickName
+
+    let isValid chessPlayer =
+        match String.IsNullOrWhiteSpace chessPlayer.FirstName,
+              String.IsNullOrWhiteSpace chessPlayer.LastName,
+              String.IsNullOrWhiteSpace chessPlayer.NickName with
+        | true, false, _
+        | false, true, _
+        | true, true, true -> false
+        | _ -> true
 
 [<CLIMutable>]
 type ChessGame =
@@ -83,6 +97,8 @@ type ICEApi =
     { getChessGames : unit -> Async<ChessGame list>
       addChessGame : ChessGame -> Async<ChessGame>
       deleteChessGame : ChessGame -> Async<ChessGame>
+      updateChessGame : ChessGame -> Async<ChessGame>
       getChessPlayers : unit -> Async<ChessPlayer list>
       addChessPlayer : ChessPlayer -> Async<ChessPlayer>
-      deleteChessPlayer : ChessPlayer -> Async<ChessPlayer>}
+      deleteChessPlayer : ChessPlayer -> Async<ChessPlayer>
+      updateChessPlayer : ChessPlayer -> Async<ChessPlayer> }

@@ -22,21 +22,29 @@ type Model =
     { Api: ICEApi
       ChessPlayers: ChessPlayer list
       DisplayedChessPlayers: ChessPlayer list
+      SelectedChessPlayer: ChessPlayer option
       ChessPlayerInput: ChessPlayer
       ErrorString: string
       Exn : exn option }
+
+type EditPlayerType =
+    | New
+    | Selected
 
 type InternalMsg =
     | AddPlayer of ChessPlayer
     | DeletePlayer of ChessPlayer
     | AddedPlayer of ChessPlayer
     | DeletedPlayer of ChessPlayer
-    | EditFirstName of string
-    | EditLastName of string
-    | EditNickName of string
-    | EditTwitchChannel of string
-    | EditYouTubeChannel of string
-    | EditTwitterHandle of string
+    | SelectPlayer of ChessPlayer
+    | UpdatePlayer of ChessPlayer option
+    | UpdatedPlayer of ChessPlayer
+    | EditFirstName of (EditPlayerType * string)
+    | EditLastName of (EditPlayerType * string)
+    | EditNickName of (EditPlayerType * string)
+    | EditTwitchChannel of (EditPlayerType * string)
+    | EditYouTubeChannel of (EditPlayerType * string)
+    | EditTwitterHandle of (EditPlayerType * string)
     | UpdateErrorString of string
     | HandleExn of exn
     | UpdateDisplayedChessPlayers

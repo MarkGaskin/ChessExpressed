@@ -54,6 +54,9 @@ let update (msg: Msg) (model: Model): Model * Cmd<Msg> =
         let cMdl, cCmd = ChessBoard.State.update msg model.ChessBoardModel
         { model with ChessBoardModel = cMdl }, cCmd |> Cmd.map ChessBoardMsg
 
-    | ChessPlayersMsg msg ->
+    | ChessPlayersMsg (ChessPlayers.Types.Internal msg) ->
         let cMdl, cCmd = ChessPlayers.State.update msg model.ChessPlayersModel
         { model with ChessPlayersModel = cMdl }, cCmd |> Cmd.map ChessPlayersMsg
+
+    | ChessPlayersMsg (ChessPlayers.Types.External (ChessPlayers.Types.UpdatedPlayers updatedPlayers)) ->
+        model, Cmd.none

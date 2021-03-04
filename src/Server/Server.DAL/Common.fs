@@ -8,7 +8,7 @@ open LiteDB
 type Storage () =
     let database =
         let mapper = FSharpBsonMapper()
-        let connStr = "Filename=Todo.db;mode=Exclusive"
+        let connStr = "Filename=ChessExpressed.db;mode=Exclusive"
         new LiteDatabase (connStr, mapper)
     let chessGames = database.GetCollection<ChessGame> "chessGames"
     let chessPlayers = database.GetCollection<ChessPlayer> "chessPlayers"
@@ -17,23 +17,33 @@ type Storage () =
     member _.GetChessPlayers () =
         chessPlayers.FindAll () |> List.ofSeq
 
-    /// Tries to add a todo item to the collection.
+    /// Tries to add a ches player item to the collection.
     member _.AddChessPlayer (chessPlayer:ChessPlayer) =
         chessPlayers.Insert chessPlayer |> ignore
         Ok ()
 
-    /// Retrieves all todo items.
+    /// Tries to add a ches player item to the collection.
+    member _.DeleteChessPlayer (chessPlayer:ChessPlayer) =
+        chessPlayers.Delete (BsonValue(chessPlayer.Id)) |> ignore
+        Ok ()
+
+    /// Retrieves all chess game items.
     member _.GetChessGames () =
         chessGames.FindAll () |> List.ofSeq
 
-    /// Tries to add a todo item to the collection.
+    /// Tries to add a chess game item to the collection.
     member _.AddChessGame (chessGame:ChessGame) =
         chessGames.Insert chessGame |> ignore
         Ok ()
 
+    /// Tries to add a chess game item to the collection.
+    member _.DeleteChessGame (chessGame:ChessGame) =
+        chessGames.Delete (BsonValue(chessGame.Id)) |> ignore
+        Ok ()
+
 let storage = Storage()
 
-let todosApi =
+let CEApi =
     { getChessGames = fun () -> async { return storage.GetChessGames() }
       addChessGame =
         fun chessGame -> async {
@@ -41,6 +51,11 @@ let todosApi =
             | Ok () -> return chessGame
             | Error e -> return failwith e
         }
+      deleteChessGame =
+          fun chessGame -> async {
+              match storage.DeleteChessGame chessGame with
+              Ok () -> return chessGame
+              | Error e -> return failwith e }
       getChessPlayers = fun () -> async { return storage.GetChessPlayers() }
       addChessPlayer =
           fun chessPlayer -> async {
@@ -48,4 +63,9 @@ let todosApi =
               | Ok () -> return chessPlayer
               | Error e -> return failwith e
           }
+      deleteChessPlayer =
+          fun chessPlayer -> async {
+              match storage.DeleteChessPlayer chessPlayer with
+              Ok () -> return chessPlayer
+              | Error e -> return failwith e }
     }

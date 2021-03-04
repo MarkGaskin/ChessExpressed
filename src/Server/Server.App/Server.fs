@@ -12,7 +12,7 @@ open Server.DAL
 let webApp =
     Remoting.createApi()
     |> Remoting.withRouteBuilder Route.builder
-    |> Remoting.fromValue todosApi
+    |> Remoting.fromValue CEApi
     |> Remoting.buildHttpHandler
 
 let app =
@@ -23,5 +23,6 @@ let app =
         use_static "public"
         use_gzip
     }
+
 
 run app

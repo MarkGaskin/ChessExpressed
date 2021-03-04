@@ -12,8 +12,8 @@
     <PackageReference Include="LiteDB.FSharp" Version="2.15.1" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\..\Server.DAL\Server.DAL.fsproj" />
     <ProjectReference Include="..\..\Shared\Shared.fsproj" />
+    <ProjectReference Include="..\Server.DAL\Server.DAL.fsproj" />
   </ItemGroup>
   <Import Project="..\..\..\.paket\Paket.Restore.targets" />
 </Project>

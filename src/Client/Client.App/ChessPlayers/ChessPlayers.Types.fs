@@ -21,12 +21,16 @@ open Shared
 type Model =
     { Api: ICEApi
       ChessPlayers: ChessPlayer list
+      DisplayedChessPlayers: ChessPlayer list
       ChessPlayerInput: ChessPlayer
-      ErrorString: string }
+      ErrorString: string
+      Exn : exn option }
 
-type Msg =
+type InternalMsg =
     | AddPlayer of ChessPlayer
+    | DeletePlayer of ChessPlayer
     | AddedPlayer of ChessPlayer
+    | DeletedPlayer of ChessPlayer
     | EditFirstName of string
     | EditLastName of string
     | EditNickName of string
@@ -34,4 +38,14 @@ type Msg =
     | EditYouTubeChannel of string
     | EditTwitterHandle of string
     | UpdateErrorString of string
+    | HandleExn of exn
+    | UpdateDisplayedChessPlayers
+    | GotChessPlayers of ChessPlayer list
+
+type ExternalMsg =
+    | UpdatedPlayers of ChessPlayer list
+
+type Msg =
+    | Internal of InternalMsg
+    | External of ExternalMsg
 

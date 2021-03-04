@@ -10,7 +10,7 @@ type ChessGameResult =
 
 [<CLIMutable>]
 type ChessPlayer =
-    { PlayerId: Guid
+    { Id: Guid
       FirstName: string
       LastName: string
       NickName: string
@@ -18,7 +18,7 @@ type ChessPlayer =
       YouTubeChannel: string
       TwitterHandle: string }
     static member defaultPlayer =
-        { PlayerId = Guid.Empty
+        { Id = Guid.NewGuid()
           FirstName = ""
           LastName = ""
           NickName = ""
@@ -28,7 +28,7 @@ type ChessPlayer =
 
 module ChessPlayer =
     let create (firstName:string) (lastName:string) (nickName:string) (twitch:string) (yt:string) (twitter:string) =
-        { PlayerId = Guid.NewGuid()
+        { Id = Guid.NewGuid()
           FirstName = firstName.Trim()
           LastName = lastName.Trim()
           NickName = nickName.Trim()
@@ -38,7 +38,7 @@ module ChessPlayer =
 
     let createByName firstName lastName =
         { ChessPlayer.defaultPlayer with
-              PlayerId = Guid.NewGuid ()
+              Id = Guid.NewGuid ()
               FirstName = firstName
               LastName = lastName
         }
@@ -49,7 +49,7 @@ module ChessPlayer =
 
 [<CLIMutable>]
 type ChessGame =
-    { GameId: Guid
+    { Id: Guid
       PlayerIdWhite: Guid
       PlayerIdBlack: Guid
       EloWhite: int
@@ -64,7 +64,7 @@ module ChessGame =
         String.IsNullOrWhiteSpace description |> not
 
     let defaultGame =
-        { GameId = Guid.Empty
+        { Id = Guid.Empty
           PlayerIdWhite = Guid.Empty
           PlayerIdBlack = Guid.Empty
           EloWhite = 0
@@ -82,5 +82,7 @@ module Route =
 type ICEApi =
     { getChessGames : unit -> Async<ChessGame list>
       addChessGame : ChessGame -> Async<ChessGame>
+      deleteChessGame : ChessGame -> Async<ChessGame>
       getChessPlayers : unit -> Async<ChessPlayer list>
-      addChessPlayer : ChessPlayer -> Async<ChessPlayer> }
+      addChessPlayer : ChessPlayer -> Async<ChessPlayer>
+      deleteChessPlayer : ChessPlayer -> Async<ChessPlayer>}

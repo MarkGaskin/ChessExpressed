@@ -5,11 +5,18 @@ open Fable.Mocha
 open Client.App.State
 open Client.App.Types
 open Shared
+open Fable.Remoting.Client
+
+
+let api =
+    Remoting.createApi()
+    |> Remoting.withRouteBuilder Route.builder
+    |> Remoting.buildProxy<ICEApi>
 
 let client = testList "Client" [
     testCase "Added todo" <| fun _ ->
         let newTodo = ChessGame.defaultGame
-        let model, _ = init ()
+        let model, _ = init api ()
 
         let model, _ = update (AddedChessGame newTodo) model
 

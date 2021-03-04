@@ -5,6 +5,12 @@
         <DefineConstants>FABLE_COMPILER</DefineConstants>
     </PropertyGroup>
     <ItemGroup>
+        <Compile Include="ChessPlayers\ChessPlayers.Types.fs" />
+        <Compile Include="ChessPlayers\ChessPlayers.State.fs" />
+        <Compile Include="ChessPlayers\ChessPlayers.View.fs" />
+        <Compile Include="ChessBoard\ChessBoard.Types.fs" />
+        <Compile Include="ChessBoard\ChessBoard.State.fs" />
+        <Compile Include="ChessBoard\ChessBoard.View.fs" />
         <None Include="index.html" />
         <None Include="paket.references" />
         <Compile Include="Types.fs" />

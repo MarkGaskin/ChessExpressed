@@ -7,81 +7,69 @@ open Fable.React.Props
 open Fable.Core
 open Fable.Core.JsInterop
 open Fulma
+open Browser.Blob
+open ChessBoard.View
+open ChessPlayers.View
+open Elmish
 
 let inline chessBoard (props : ChessBoardProps list) (elems : ReactElement list) : ReactElement =
     ofImport "default" "chessboardjsx" (keyValueList CaseRules.LowerFirst props) elems
 
-let navBrand =
-    Navbar.Brand.div [ ] [
-        Navbar.Item.a [
-            Navbar.Item.Props [ Href "https://safe-stack.github.io/" ]
-            Navbar.Item.IsActive true
+//let inline reactMediaRecorder (props : MediaRecorderProps list) (elems : ReactElement list) : ReactElement =
+//    ofImport "default" "react-media-recorder" (keyValueList CaseRules.LowerFirst props) elems
+
+let recordGameView (model : Model) (dispatch : Msg -> unit) =
+    Container.container [ ] [
+        Column.column [
+            Column.Width (Screen.All, Column.Is6)
+            Column.Offset (Screen.All, Column.Is3)
         ] [
-            img [
-                Src "/favicon.png"
-                Alt "Logo"
-            ]
-        ]
-    ]
-
-let containerBox (model : Model) (dispatch : Msg -> unit) =
-    Box.box' [ ] [
-        Content.content [ ] [
-            Content.Ol.ol [ ] [
-                for todo in model.ChessGames do
-                    li [ ] [ str todo.Event ]
-            ]
-        ]
-        Field.div [ Field.IsGrouped ] [
-            Control.p [ Control.IsExpanded ] [
-                Input.text [
-                  Input.Value model.Input
-                  Input.Placeholder "What needs to be done?"
-                  Input.OnChange (fun x -> SetInput x.Value |> dispatch) ]
-            ]
-            Control.p [ ] [
-                Button.a [
-                    Button.Color IsPrimary
-                    Button.Disabled (ChessGame.isValid model.Input |> not)
-                    Button.OnClick (fun _ -> dispatch AddChessGame)
-                ] [
-                    str "Add"
-                ]
-            ]
-        ]
-    ]
-
-let view (model : Model) (dispatch : Msg -> unit) =
-    Hero.hero [
-        Hero.Color IsPrimary
-        Hero.IsFullHeight
-        Hero.Props [
-            Style [
-                Background """linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)), url("https://unsplash.it/1200/900?random") no-repeat center center fixed"""
-                BackgroundSize "cover"
-            ]
-        ]
-    ] [
-        Hero.head [ ] [
-            Navbar.navbar [ ] [
-                Container.container [ ] [ navBrand ]
-            ]
-        ]
-
-        Hero.body [ ] [
-            Container.container [ ] [
-                Column.column [
-                    Column.Width (Screen.All, Column.Is6)
-                    Column.Offset (Screen.All, Column.Is3)
-                ] [
+            button [OnClick (fun _ -> ())] [];
                     chessBoard [ ChessBoardProps.Position "start";
                                  ChessBoardProps.Width 560;
                                  ChessBoardProps.TransitionDuration 500;
-                                 ChessBoardProps.DarkSquareStyle darkSquareStyle
-                                 ChessBoardProps.LightSquareStyle lightSquareStyle
-                                 ChessBoardProps.SquareStyles squareStyle ] []
+                                 ChessBoardProps.DarkSquareStyle darkSquareStyle;
+                                 ChessBoardProps.LightSquareStyle lightSquareStyle;
+                                 ChessBoardProps.SquareStyles squareStyle;
+                                 ChessBoardProps.ShowNotation false ] [] ]
+        ]
+
+
+let view (model : Model) (dispatch : Msg -> unit) =
+    //FunctionComponent.Of(fun props ->
+        //let (status, startRec, stopRec, mediaBlob ) = useMediaRecorder(Blob.Create props)
+        Hero.hero [
+            Hero.Color IsPrimary
+            Hero.IsFullHeight
+            Hero.Props [
+                Style [
+                    Background """linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)), url("https://unsplash.it/1200/900?random") no-repeat center center fixed"""
+                    BackgroundSize "cover"
                 ]
             ]
+        ] [ Hero.head [ ]
+                [ Tabs.tabs [ Tabs.IsBoxed
+                              Tabs.IsCentered
+                              Tabs.IsToggle ]
+                      [ Tabs.tab [ Tabs.Tab.IsActive (model.ActiveTab = TabsType.AddPlayer);
+                                   Tabs.Tab.Props [ OnClick ( fun _ -> SetTab TabsType.AddPlayer |> dispatch) ] ]
+                          [ a [ ]
+                              [ str "Add Player" ] ]
+                        Tabs.tab [ Tabs.Tab.IsActive (model.ActiveTab = TabsType.AddGame);
+                                   Tabs.Tab.Props [ OnClick ( fun _ -> SetTab TabsType.AddGame |> dispatch) ] ]
+                          [ a [ ]
+                              [ str "Add Game"] ]
+                        Tabs.tab [ Tabs.Tab.IsActive (model.ActiveTab = TabsType.RecordGame);
+                                   Tabs.Tab.Props [ OnClick ( fun _ -> SetTab TabsType.RecordGame |> dispatch) ]  ]
+                          [ a [ ]
+                              [ str "Record Game" ] ] ] ]
+            Hero.body [ ] [ match model.ActiveTab with
+                            | RecordGame -> recordGameView model dispatch
+                            | AddGame -> a [] [ str "Hello world" ]
+                            | AddPlayer -> addPlayerView model.ChessPlayersModel (ChessPlayersMsg >> dispatch)
+                          ]
 
+        
+                   
         ]
-    ]
+        //) ([|createObj ["Video" ==> "true"; "Audio" ==> "true" ]|])

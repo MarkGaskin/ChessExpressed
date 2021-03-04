@@ -5,11 +5,15 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Compile Include="Library.fs" />
+    <Compile Include="Common.fs" />
   </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="LiteDB.FSharp" Version="2.15.1" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\src\Shared\Shared.fsproj" />
   </ItemGroup>
 
 </Project>

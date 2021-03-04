@@ -4,33 +4,47 @@ open Shared
 open Fable.Remoting.Client
 open Fable.React
 open Fable.Core.JsInterop
+open Browser
+open Browser.Types
+open Browser.Blob
+open Fable.Core
+open Fable.React.Props
 
-let darkSquareStyle = createObj ["backgroundColor" ==> "rgb(78, 181, 78)"]
-let lightSquareStyle = createObj ["backgroundColor" ==> "rgb(240, 255, 240)"]
+//type IMediaRecord =
+//    abstract startRecording : unit -> unit
+//    abstract stopRecording : unit -> unit
+//    abstract mediaBlobUrl : HTMLCanvasElement -> unit
 
-let squareObj = createObj ["backgroundColor" ==> "red"; "opacity" ==> "0.5"]
-let squareStyle = createObj ["e4" ==> squareObj]
+//[<Import("default", from="react-media-recorder")>]
+//let mediaRecorder : IMediaRecord = jsNative
 
-type ChessBoardProps =
-    | Position of string
-    | TransitionDuration of int
-    | Width of int
-    | DarkSquareStyle of obj
-    | LightSquareStyle of obj
-    | SquareStyles of obj
+type IMediaProps =
+    | Audio of bool
+    | Video of bool
 
+type useMediaRecorderType = Blob -> (string * (unit -> unit) * (unit -> unit) * (unit -> Blob))
 
-let todosApi =
-    Remoting.createApi()
-    |> Remoting.withRouteBuilder Route.builder
-    |> Remoting.buildProxy<IChessGameApi>
+let useMediaRecorder : useMediaRecorderType = import "useReactMediaRecorder" "react-media-recorder"
+   
+
+type TabsType =
+    | AddPlayer
+    | AddGame
+    | RecordGame
 
 type Model =
-    { ChessGames: ChessGame list
-      Input: string }
+    { Api: ICEApi
+      ChessGames: ChessGame list
+      ChessBoardModel: ChessBoard.Types.Model
+      ChessPlayersModel: ChessPlayers.Types.Model
+      ActiveTab: TabsType
+      }
 
 type Msg =
     | GotChessGames of ChessGame list
-    | SetInput of string
     | AddChessGame
     | AddedChessGame of ChessGame
+    | StartRecording of (unit -> unit)
+    | SetTab of TabsType
+    | ChessBoardMsg of ChessBoard.Types.Msg
+    | ChessPlayersMsg of ChessPlayers.Types.Msg

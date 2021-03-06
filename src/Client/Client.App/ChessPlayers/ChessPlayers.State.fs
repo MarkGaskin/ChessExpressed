@@ -24,7 +24,10 @@ let init api =
 let update msg (model:Model) =
     match msg with
     | GotChessPlayers chessPlayers ->
-        { model with ChessPlayers = chessPlayers }, UpdateDisplayedChessPlayers |> Internal |> Cmd.ofMsg
+        { model with ChessPlayers = chessPlayers },
+            [ UpdateDisplayedChessPlayers |> Internal |> Cmd.ofMsg
+              chessPlayers |> UpdatedPlayers |> External |> Cmd.ofMsg ]
+            |> Cmd.batch
 
     | AddPlayer newPlayer when ChessPlayer.isValid newPlayer ->
         model.ChessPlayers
@@ -106,7 +109,9 @@ let update msg (model:Model) =
         let updatedPlayers =
             model.ChessPlayers
             |> List.map( fun chessPlayer -> if chessPlayer.Id = updatedChessPlayer.Id then updatedChessPlayer else chessPlayer)
-        { model with ChessPlayers = updatedPlayers }, UpdateDisplayedChessPlayers |> Internal |> Cmd.ofMsg
+        { model with ChessPlayers = updatedPlayers }, [ UpdateDisplayedChessPlayers |> Internal |> Cmd.ofMsg
+                                                        updatedPlayers |> UpdatedPlayers |> External |> Cmd.ofMsg ]
+                                                      |> Cmd.batch
 
     | UpdateErrorString string ->
         JS.console.error string

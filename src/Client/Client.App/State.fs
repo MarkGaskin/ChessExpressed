@@ -9,21 +9,22 @@ open Shared
 
 
 
-let init api (): Model * Cmd<Msg> =
-    let cmd = Cmd.OfAsync.perform api.getChessGames () GotChessGames
+let init (api: ICEApi) (): Model * Cmd<Msg> =
     JS.console.log "State.init"
 
     let cBMdl, cBCmd = ChessBoard.State.init api
     let cPMdl, cPCmd = ChessPlayers.State.init api
+    let cGMdl, cGCmd = ChessGames.State.init api
 
     { Api = api
       ChessBoardModel = cBMdl
       ChessPlayersModel = cPMdl
+      ChessGamesModel = cGMdl
       ChessGames = []
       ActiveTab = TabsType.AddPlayer },
         [ cBCmd |> Cmd.map ChessBoardMsg
           cPCmd |> Cmd.map ChessPlayersMsg
-          cmd ]
+          cGCmd |> Cmd.map ChessGamesMsg ]
         |> Cmd.batch
 
 let update (msg: Msg) (model: Model): Model * Cmd<Msg> =
@@ -58,5 +59,13 @@ let update (msg: Msg) (model: Model): Model * Cmd<Msg> =
         let cMdl, cCmd = ChessPlayers.State.update msg model.ChessPlayersModel
         { model with ChessPlayersModel = cMdl }, cCmd |> Cmd.map ChessPlayersMsg
 
-    | ChessPlayersMsg (ChessPlayers.Types.External (ChessPlayers.Types.UpdatedPlayers updatedPlayers)) ->
+    | ChessGamesMsg (ChessGames.Types.Internal msg) ->
+        let cMdl, cCmd = ChessGames.State.update msg model.ChessGamesModel
+        { model with ChessGamesModel = cMdl }, cCmd |> Cmd.map ChessGamesMsg
+
+    | ChessGamesMsg (ChessGames.Types.External msg) ->
         model, Cmd.none
+
+    | ChessPlayersMsg (ChessPlayers.Types.External (ChessPlayers.Types.UpdatedPlayers updatedPlayers)) ->
+        let cMdl, cCmd = ChessGames.State.update (ChessGames.Types.GotChessPlayers updatedPlayers) model.ChessGamesModel
+        { model with ChessGamesModel = cMdl }, cCmd |> Cmd.map ChessGamesMsg

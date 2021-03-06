@@ -11,6 +11,6 @@ open Shared
 let shared = testList "Shared" [
     testCase "Empty string is not a valid description" <| fun _ ->
         let expected = false
-        let actual = ChessGame.isValid ""
+        let actual = ChessGame.isValid ChessGame.defaultGame
         Expect.equal actual expected "Should be false"
 ]

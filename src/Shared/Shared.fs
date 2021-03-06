@@ -2,11 +2,37 @@ namespace Shared
 
 open System
 
+open Shared.CEError
+
 
 type ChessGameResult =
     | WhiteWin
     | BlackWin
     | Draw
+    static member describe =
+        function
+        | WhiteWin -> "WhiteWin"
+        | BlackWin -> "BlackWin"
+        | Draw -> "Draw"
+    static member parse =
+        function
+        | "WhiteWin" -> WhiteWin
+        | "BlackWin" -> BlackWin
+        | _ -> Draw
+    static member all =
+        [WhiteWin; BlackWin; Draw]
+    
+
+[<CLIMutable>]
+type ECO =
+    { Id : Guid
+      Eco: string
+      Name: string
+      Moves: string }
+    static member defaultEco =
+        { Id = Guid.NewGuid(); Eco = ""; Name = ""; Moves = ""}
+
+
 
 [<CLIMutable>]
 type ChessPlayer =
@@ -61,44 +87,100 @@ module ChessPlayer =
         | true, true, true -> false
         | _ -> true
 
+    let getPlayerName (chessPlayer: ChessPlayer) =
+        if chessPlayer.NickName = "" then chessPlayer.FirstName + " " + chessPlayer.LastName
+        else chessPlayer.NickName
+
+    let searchNameStart chessPlayer (string: string): bool =
+        match String.IsNullOrWhiteSpace string,
+              string = chessPlayer.NickName || string = getPlayerName chessPlayer,
+              chessPlayer.NickName.StartsWith string,
+              chessPlayer.FirstName.StartsWith (string.Trim()),
+              chessPlayer.LastName.StartsWith (string.Trim()) with
+        | false, true, _, _, _ -> false
+        | true, _, _, _, _
+        | _, _, true, _, _
+        | _, _, _, true, _
+        | _, _, _ ,_, true -> true
+        | _ ->
+            string.Split " "
+            |> Array.indexed
+            |> Array.forall
+                (fun (idx, string) -> if idx = 0 then chessPlayer.FirstName.StartsWith string
+                                      else chessPlayer.LastName.StartsWith string)
+
+
 [<CLIMutable>]
 type ChessGame =
     { Id: Guid
-      PlayerIdWhite: Guid
-      PlayerIdBlack: Guid
-      EloWhite: int
-      EloBlack: int
-      Date: DateTime
-      Event: string
+      PlayerIds : Guid list
+      EloWhite: string option
+      EloBlack: string option
+      Year: string option
+      Event: string option
       Result: ChessGameResult
-      GameNotation: string}
+      GameNotation: string
+      Eco: ECO option
+      TotalMoves : int
+      Notes: string
+      HasRecorded: bool }
 
 module ChessGame =
-    let isValid (description: string) =
-        String.IsNullOrWhiteSpace description |> not
+    let isValid (chessGame : ChessGame) =
+        chessGame.PlayerIds.Length = 2
+
+    let isRoughlyEqual chessGame1 chessGame2 =
+        chessGame1.PlayerIds = chessGame2.PlayerIds &&
+        chessGame1.GameNotation = chessGame2.GameNotation
 
     let defaultGame =
-        { Id = Guid.Empty
-          PlayerIdWhite = Guid.Empty
-          PlayerIdBlack = Guid.Empty
-          EloWhite = 0
-          EloBlack = 0
-          Date = DateTime.Now
-          Event = ""
+        { Id = Guid.NewGuid()
+          PlayerIds = [ Guid.Empty; Guid.Empty ]
+          EloWhite = None
+          EloBlack = None
+          Year = None
+          Event = None
           Result = Draw
-          GameNotation = ""}
+          GameNotation = ""
+          HasRecorded = false
+          Eco = None
+          TotalMoves = 0
+          Notes = ""
+          }
         
-
 module Route =
     let builder typeName methodName =
         sprintf "/api/%s/%s" typeName methodName
 
-type ICEApi =
+type PGNApi =
+    { ImportFromPath : string -> Async<Result<unit,ServerError>> }
+
+type ECOApi =
+    {  UpdateECOs : unit -> Async<Result<unit,ServerError>>
+       GetECOFromID : string -> Async<Result<ECO,ServerError>>
+       GetECOFromMoves : string -> Async<Result<ECO,ServerError>> }
+
+type ChessGameApi =
     { getChessGames : unit -> Async<ChessGame list>
       addChessGame : ChessGame -> Async<ChessGame>
       deleteChessGame : ChessGame -> Async<ChessGame>
-      updateChessGame : ChessGame -> Async<ChessGame>
-      getChessPlayers : unit -> Async<ChessPlayer list>
+      updateChessGame : ChessGame -> Async<ChessGame> }
+
+type ChessPlayerApi =
+    { getChessPlayers : unit -> Async<ChessPlayer list>
       addChessPlayer : ChessPlayer -> Async<ChessPlayer>
       deleteChessPlayer : ChessPlayer -> Async<ChessPlayer>
       updateChessPlayer : ChessPlayer -> Async<ChessPlayer> }
+type ICEApi =
+    { getChessPlayers : unit -> Async<ChessPlayer list>
+      addChessPlayer : ChessPlayer -> Async<ChessPlayer>
+      deleteChessPlayer : ChessPlayer -> Async<ChessPlayer>
+      updateChessPlayer : ChessPlayer -> Async<ChessPlayer>
+      getChessGames : unit -> Async<ChessGame list>
+      addChessGame : ChessGame -> Async<ChessGame>
+      deleteChessGame : ChessGame -> Async<ChessGame>
+      updateChessGame : ChessGame -> Async<ChessGame> 
+      UpdateECOs : unit -> Async<Result<unit,ServerError>>
+      GetECOFromID : string -> Async<Result<ECO,ServerError>>
+      GetECOFromMoves : string -> Async<Result<ECO,ServerError>>
+      ImportFromPath : string -> Async<Result<unit, ServerError>> }

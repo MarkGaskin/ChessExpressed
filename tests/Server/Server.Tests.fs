@@ -3,7 +3,7 @@ module Server.Tests
 open Expecto
 
 open Shared
-open Server.DAL
+open Server.DAL.Common
 
 let server = testList "Server" [
     testCase "Adding valid Chess Game" <| fun _ ->

@@ -74,7 +74,7 @@ let addPlayerView (model : Model) (dispatch : Msg -> unit) =
                                          Button.a [
                                              Button.Color IColor.IsWhite
                                              Button.OnClick (fun _ -> SelectPlayer chessPlayer |> Internal |> dispatch )
-                                         ] [ str (chessPlayer.FirstName + " " + chessPlayer.LastName) ] ]
+                                         ] [ str (ChessPlayer.getPlayerName chessPlayer) ] ]
                                      Control.p [ ] [
                                          Button.a [
                                              Button.Color IsPrimary

@@ -37,6 +37,7 @@ type Model =
       ChessGames: ChessGame list
       ChessBoardModel: ChessBoard.Types.Model
       ChessPlayersModel: ChessPlayers.Types.Model
+      ChessGamesModel: ChessGames.Types.Model
       ActiveTab: TabsType
       }
 
@@ -48,3 +49,4 @@ type Msg =
     | SetTab of TabsType
     | ChessBoardMsg of ChessBoard.Types.Msg
     | ChessPlayersMsg of ChessPlayers.Types.Msg
+    | ChessGamesMsg of ChessGames.Types.Msg

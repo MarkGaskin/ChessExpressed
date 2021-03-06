@@ -10,6 +10,7 @@ open Fulma
 open Browser.Blob
 open ChessBoard.View
 open ChessPlayers.View
+open ChessGames.View
 open Elmish
 
 let inline chessBoard (props : ChessBoardProps list) (elems : ReactElement list) : ReactElement =
@@ -65,7 +66,7 @@ let view (model : Model) (dispatch : Msg -> unit) =
                               [ str "Record Game" ] ] ] ]
             Hero.body [ ] [ match model.ActiveTab with
                             | RecordGame -> recordGameView model dispatch
-                            | AddGame -> a [] [ str "Hello world" ]
+                            | AddGame -> addGameView model.ChessGamesModel (ChessGamesMsg >> dispatch)
                             | AddPlayer -> addPlayerView model.ChessPlayersModel (ChessPlayersMsg >> dispatch)
                           ]
 

@@ -6,7 +6,7 @@ open Saturn
 
 open Shared
 
-open Server.DAL
+open Server.DAL.Common
 
 
 let webApp =

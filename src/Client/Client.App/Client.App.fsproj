@@ -5,6 +5,9 @@
         <DefineConstants>FABLE_COMPILER</DefineConstants>
     </PropertyGroup>
     <ItemGroup>
+        <Compile Include="ChessGames\ChessGames.Types.fs" />
+        <Compile Include="ChessGames\ChessGames.State.fs" />
+        <Compile Include="ChessGames\ChessGames.View.fs" />
         <Compile Include="ChessPlayers\ChessPlayers.Types.fs" />
         <Compile Include="ChessPlayers\ChessPlayers.State.fs" />
         <Compile Include="ChessPlayers\ChessPlayers.View.fs" />
@@ -19,6 +22,7 @@
         <Compile Include="App.fs" />
     </ItemGroup>
     <ItemGroup>
+        <ProjectReference Include="..\..\Server\Server.App\Server.App.fsproj" />
         <ProjectReference Include="..\..\Shared\Shared.fsproj" />
     </ItemGroup>
     <Import Project="..\..\..\.paket\Paket.Restore.targets" />

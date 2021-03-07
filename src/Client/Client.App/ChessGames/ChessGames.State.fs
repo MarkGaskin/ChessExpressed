@@ -42,6 +42,7 @@ let update msg (model:Model) =
         model, Cmd.OfAsync.either model.Api.ImportFromPath fileDirectory AddedBatchGames HandleExn |> Cmd.map Internal
 
     | AddedBatchGames (Ok ()) ->
+        window.alert "Successfully imported games"
         model, Cmd.OfAsync.perform model.Api.getChessGames () GotChessGames |> Cmd.map Internal
 
     | AddedBatchGames (Error (FailedToImportGames e)) ->
@@ -193,8 +194,10 @@ let update msg (model:Model) =
                     |> List.forall
                         (fun playerId ->
                             if Guid.Empty = playerId then true else List.contains playerId chessGame.PlayerIds) &&
-                    chessGame.Result = model.ChessGameInput.Result &&
-                    chessGame.Year = model.ChessGameInput.Year )
+                            (if model.ChessGameInput.Result = Draw then true
+                             else chessGame.Result = model.ChessGameInput.Result) &&
+                            (if Option.forall String.IsNullOrWhiteSpace model.ChessGameInput.Year then true
+                             else chessGame.Year = model.ChessGameInput.Year))
 
         |> fun matchingGames -> { model with DisplayedChessGames = matchingGames }, Cmd.none
 

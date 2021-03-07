@@ -122,7 +122,6 @@ type ChessGame =
       GameNotation: string
       MovesList : string array
       Eco: string
-      TotalMoves : int
       Notes: string
       HasRecorded: bool }
 
@@ -147,7 +146,6 @@ module ChessGame =
           MovesList = Array.empty
           HasRecorded = false
           Eco = ""
-          TotalMoves = 0
           Notes = ""
           }
         

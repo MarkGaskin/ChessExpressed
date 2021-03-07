@@ -129,27 +129,6 @@ let ecoApi =
       GetECOFromID = getEcoFromId
       GetECOFromMoves = getEcoFromMoves }
 
-let chessGameApi : ChessGameApi =
-    {  getChessGames = fun () -> async { return storage.GetChessGames() }
-       addChessGame =
-            fun chessGame -> async {
-                match storage.AddChessGame chessGame with
-                | Ok () -> return chessGame
-                | Error e -> return failwith e
-            }
-       deleteChessGame =
-            fun chessGame -> async {
-                match storage.DeleteChessGame chessGame with
-                | Ok true -> return chessGame
-                | Ok false -> return failwith "Failed to delete chess game"
-                | Error e -> return failwith e }
-       updateChessGame =
-            fun chessGame -> async {
-                match storage.UpdateChessGame chessGame with
-                | Ok true-> return chessGame
-                | Ok false -> return failwith "Failed to update chess game"
-                | Error e -> return failwith e } }
-
 let chessPlayerApi : ChessPlayerApi =
     { 
       getChessPlayers = fun () -> async { return storage.GetChessPlayers() }
@@ -220,7 +199,7 @@ let stripComments (gameString:string) =
     Regex.Replace(gameString, @" ?\{.*?\}", String.Empty)
 
 let stripMoveNumbers (gameString:string) = 
-    Regex.Replace(gameString, @" \d+\.", String.Empty)
+    Regex.Replace(gameString, @"\d+\.", String.Empty)
 
 let parseMoves (gameString: string) =
     let gameString = gameString.Substring(gameString.IndexOf("1."))
@@ -229,7 +208,7 @@ let parseMoves (gameString: string) =
     filteredGameString.Split(" ")
     
 
-let pgnParserToChessGame (pgnParser: PgnParserLite) gameString = 
+let pgnParserToChessGame (pgnParser: PgnParserLite) gameString =
     { Event = pgnParser.Event |> Some
       Id = Guid.NewGuid()
       PlayerIds = [ findPlayerIdOrCreate pgnParser.White; findPlayerIdOrCreate pgnParser.Black]
@@ -244,7 +223,6 @@ let pgnParserToChessGame (pgnParser: PgnParserLite) gameString =
       MovesList = gameString |> parseMoves
       HasRecorded = false
       Eco = pgnParser.ECO
-      TotalMoves = pgnParser.Moves.Length
       Notes = gameString }
 
 let rec parseAllPgn (pgnSplitter: MassivePgnFileSplitter) =
@@ -299,7 +277,29 @@ let importGames (directoryPath: string) =
 
 let pgnApi : PGNApi =
     { ImportFromPath = importGames }
-    
+
+
+let chessGameApi : ChessGameApi =
+    {  getChessGames = fun () -> async { return storage.GetChessGames() }
+       addChessGame =
+            fun chessGame -> async {
+                let newChessGame = { chessGame with MovesList = chessGame.GameNotation |> parseMoves }
+                match storage.AddChessGame newChessGame with
+                | Ok () -> return newChessGame
+                | Error e -> return failwith e
+            }
+       deleteChessGame =
+            fun chessGame -> async {
+                match storage.DeleteChessGame chessGame with
+                | Ok true -> return chessGame
+                | Ok false -> return failwith "Failed to delete chess game"
+                | Error e -> return failwith e }
+       updateChessGame =
+            fun chessGame -> async {
+                match storage.UpdateChessGame chessGame with
+                | Ok true-> return chessGame
+                | Ok false -> return failwith "Failed to update chess game"
+                | Error e -> return failwith e } }    
 
 let CEApi =
     { getChessPlayers = chessPlayerApi.getChessPlayers

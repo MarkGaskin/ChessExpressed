@@ -1,6 +1,7 @@
 module Client.App.ChessGames.Types
 
 open Shared
+open Shared.CEError
 open System
 
 type Model =
@@ -25,6 +26,7 @@ type EditGameType =
 
 type InternalMsg =
     | AddBatchGames of string
+    | AddedBatchGames of Result<unit, ServerError>
     | EditImportDirectory of string
     | AddGame of ChessGame
     | StartGamePressed
@@ -48,7 +50,6 @@ type InternalMsg =
     | GotChessGames of ChessGame list
     | FilterChessGames
     | UpdateErrorString of string
-    | UpdateDisplayedChessGames
 
 type ExternalMsg =
     | UpdatedGames of ChessGame list

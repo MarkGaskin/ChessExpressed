@@ -120,7 +120,8 @@ type ChessGame =
       Event: string option
       Result: ChessGameResult
       GameNotation: string
-      Eco: ECO option
+      MovesList : string array
+      Eco: string
       TotalMoves : int
       Notes: string
       HasRecorded: bool }
@@ -131,7 +132,8 @@ module ChessGame =
 
     let isRoughlyEqual chessGame1 chessGame2 =
         chessGame1.PlayerIds = chessGame2.PlayerIds &&
-        chessGame1.GameNotation = chessGame2.GameNotation
+        chessGame1.GameNotation = chessGame2.GameNotation &&
+        chessGame1.MovesList = chessGame2.MovesList
 
     let defaultGame =
         { Id = Guid.NewGuid()
@@ -142,8 +144,9 @@ module ChessGame =
           Event = None
           Result = Draw
           GameNotation = ""
+          MovesList = Array.empty
           HasRecorded = false
-          Eco = None
+          Eco = ""
           TotalMoves = 0
           Notes = ""
           }

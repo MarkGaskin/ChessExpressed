@@ -5,7 +5,6 @@ open Shared.CEError
 
 open LiteDB.FSharp
 open LiteDB
-open Server.DAL.PgnImport
 open System
 open System.IO
 
@@ -173,6 +172,133 @@ let chessPlayerApi : ChessPlayerApi =
               | Error e -> return failwith e
           }
     }
+
+let findPlayerIdOrCreate playerName =
+    if String.exists ((=) ',') playerName then
+        let names = playerName.Split(',')
+        let firstName = names |> Array.tryItem 1 |> Option.defaultValue ""
+        let lastName = names |> Array.tryItem 0 |> Option.defaultValue ""
+        storage.GetChessPlayers()
+        |> List.tryFind
+            (fun chessPlayer ->
+                chessPlayer.LastName = lastName && (chessPlayer.FirstName.StartsWith firstName || firstName.StartsWith chessPlayer.FirstName ))
+        |> function
+           | Some chessPlayer when chessPlayer.FirstName < firstName ->
+               { chessPlayer with FirstName = firstName }
+               |> storage.AddChessPlayer
+               |> ignore
+               chessPlayer.Id
+           | Some chessPlayer ->
+               chessPlayer.Id
+           | None ->
+               let playerId = Guid.NewGuid()
+               { ChessPlayer.defaultPlayer with Id = playerId; FirstName = firstName; LastName = lastName }
+               |> storage.AddChessPlayer
+               |> ignore
+               playerId
+    else
+        let nickName = playerName
+        storage.GetChessPlayers()
+        |> List.tryFind
+            (fun chessPlayer ->
+                chessPlayer.NickName = nickName)
+        |> function
+           | Some chessPlayer ->
+               chessPlayer.Id
+           | None ->
+               let playerId = Guid.NewGuid()
+               { ChessPlayer.defaultPlayer with Id = playerId; NickName = nickName }
+               |> storage.AddChessPlayer
+               |> ignore
+               playerId
+
+open TimHanewich.Chess.BatchAnalysis
+open TimHanewich.Chess.Pgn
+open System.Text.RegularExpressions
+
+let stripComments (gameString:string) = 
+    Regex.Replace(gameString, @" ?\{.*?\}", String.Empty)
+
+let stripMoveNumbers (gameString:string) = 
+    Regex.Replace(gameString, @" \d+\.", String.Empty)
+
+let parseMoves (gameString: string) =
+    let gameString = gameString.Substring(gameString.IndexOf("1."))
+    let gameString = gameString.Replace("?", "").Replace("!", "").Replace("...", ".").Replace("*", "").Replace("   ", "  ").Replace("  ", " ")
+    let filteredGameString = gameString |> stripComments |> stripMoveNumbers
+    filteredGameString.Split(" ")
+    
+
+let pgnParserToChessGame (pgnParser: PgnParserLite) gameString = 
+    { Event = pgnParser.Event |> Some
+      Id = Guid.NewGuid()
+      PlayerIds = [ findPlayerIdOrCreate pgnParser.White; findPlayerIdOrCreate pgnParser.Black]
+      EloWhite = pgnParser.WhiteElo |> string |> Some
+      EloBlack = pgnParser.BlackElo |> string |> Some
+      Year = pgnParser.Date.Year |> string |> Some
+      Result = match pgnParser.Result with
+               | "1-0" -> WhiteWin
+               | "0-1" -> BlackWin
+               | _ -> Draw
+      GameNotation = pgnParser.Moves |> String.concat " "
+      MovesList = gameString |> parseMoves
+      HasRecorded = false
+      Eco = pgnParser.ECO
+      TotalMoves = pgnParser.Moves.Length
+      Notes = gameString }
+
+let rec parseAllPgn (pgnSplitter: MassivePgnFileSplitter) =
+    try
+        let gameString = pgnSplitter.GetNextGame()
+        if gameString |> String.IsNullOrWhiteSpace then [||]
+        else
+            PgnParserLite.ParsePgn(gameString)
+            |> fun pgnParser ->
+                [|pgnParserToChessGame pgnParser gameString|]
+                |> Array.append (parseAllPgn pgnSplitter)
+    with _ ->
+        [||]
+
+
+let importGames (directoryPath: string) =
+    async {
+        return result{
+            try
+                Directory.GetFiles(directoryPath)
+                |> Array.iter
+                    (fun filePath ->
+                        try
+                            use stream = File.OpenRead(filePath)
+                        
+                            let pgnSplitter = new MassivePgnFileSplitter(stream)
+
+                            let parsedGames = parseAllPgn pgnSplitter
+                        
+                            parsedGames
+                            |> Array.iter
+                                (fun game ->
+                                    storage.GetChessGames ()
+                                    |> List.exists (ChessGame.isRoughlyEqual game)
+                                    |> function
+                                       | true -> ()
+                                       | false -> storage.AddChessGame game |> ignore)
+                        with _ ->
+                            ()
+                        )
+
+                |> ignore
+                return! Ok ()
+            with
+            | :? System.IO.FileNotFoundException
+            | :? System.IO.DirectoryNotFoundException ->
+                return! Error FileForParsingNotFound
+            | e ->
+                return! Error (FailedToImportGames e)
+        }
+    }
+
+let pgnApi : PGNApi =
+    { ImportFromPath = importGames }
     
 
 let CEApi =

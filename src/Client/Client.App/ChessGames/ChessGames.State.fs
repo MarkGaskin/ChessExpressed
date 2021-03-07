@@ -12,6 +12,7 @@ open Fable.Core
 open Fable.React.Props
 open Types
 open Elmish
+open Shared.CEError
 
 let updateInputField (updateFun: ChessGame -> ChessGame) model editGameType =
     if editGameType = EditGameType.New then
@@ -32,20 +33,25 @@ let init api =
       SelectedChessGameOriginal = None
       ChessGameInput = ChessGame.defaultGame
       ErrorString = ""
-      ImportDirectory = ""
+      ImportDirectory = "C:\\PGN"
       Exn = None }, Cmd.OfAsync.perform api.getChessGames () GotChessGames |> Cmd.map Internal
 
 let update msg (model:Model) =
     match msg with
     | AddBatchGames fileDirectory ->
-        
-        model, Cmd.none
+        model, Cmd.OfAsync.either model.Api.ImportFromPath fileDirectory AddedBatchGames HandleExn |> Cmd.map Internal
+
+    | AddedBatchGames (Ok ()) ->
+        model, Cmd.OfAsync.perform model.Api.getChessGames () GotChessGames |> Cmd.map Internal
+
+    | AddedBatchGames (Error (FailedToImportGames e)) ->
+        { model with Exn = e |> Some }, FailedToImportGames e |> ServerError.describe |> UpdateErrorString |> Internal |> Cmd.ofMsg
+
+    | AddedBatchGames (Error e) ->
+        model, e |> ServerError.describe |> UpdateErrorString |> Internal |> Cmd.ofMsg
 
     | EditImportDirectory importDirectory ->
         { model with ImportDirectory = importDirectory }, Cmd.none
-
-    | UpdateDisplayedChessGames ->
-        model, Cmd.none
 
     | StartGamePressed ->
         model, Cmd.none
@@ -179,19 +185,18 @@ let update msg (model:Model) =
     | HandleExn exn ->
         { model with Exn = Some exn }, Cmd.none
 
-    | FilterChessGames when model.SelectedChessGame.IsSome ->
+    | FilterChessGames ->
         model.ChessGames
         |> List.filter
                 (fun chessGame ->
-                    model.SelectedChessGame.Value.PlayerIds
+                    model.ChessGameInput.PlayerIds
                     |> List.forall
                         (fun playerId ->
                             if Guid.Empty = playerId then true else List.contains playerId chessGame.PlayerIds) &&
-                    chessGame.Result = model.SelectedChessGame.Value.Result &&
-                    chessGame.Year = model.SelectedChessGame.Value.Year )
+                    chessGame.Result = model.ChessGameInput.Result &&
+                    chessGame.Year = model.ChessGameInput.Year )
 
         |> fun matchingGames -> { model with DisplayedChessGames = matchingGames }, Cmd.none
 
     | FilterChessGames ->
-        JS.console.info "Filter before selected chess game is Some"
         model, Cmd.none

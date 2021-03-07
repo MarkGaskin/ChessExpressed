@@ -113,11 +113,13 @@ module ChessPlayer =
 [<CLIMutable>]
 type ChessGame =
     { Id: Guid
+      DisplayName: string
       PlayerIds : Guid list
       EloWhite: string option
       EloBlack: string option
       Year: string option
       Event: string option
+      Round: string option
       Result: ChessGameResult
       GameNotation: string
       MovesList : string array
@@ -136,11 +138,13 @@ module ChessGame =
 
     let defaultGame =
         { Id = Guid.NewGuid()
+          DisplayName = ""
           PlayerIds = [ Guid.Empty; Guid.Empty ]
           EloWhite = None
           EloBlack = None
           Year = None
           Event = None
+          Round = None
           Result = Draw
           GameNotation = ""
           MovesList = Array.empty
@@ -180,7 +184,7 @@ type ICEApi =
       getChessGames : unit -> Async<ChessGame list>
       addChessGame : ChessGame -> Async<ChessGame>
       deleteChessGame : ChessGame -> Async<ChessGame>
-      updateChessGame : ChessGame -> Async<ChessGame> 
+      updateChessGame : ChessGame -> Async<ChessGame>
       UpdateECOs : unit -> Async<Result<unit,ServerError>>
       GetECOFromID : string -> Async<Result<ECO,ServerError>>
       GetECOFromMoves : string -> Async<Result<ECO,ServerError>>

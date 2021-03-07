@@ -20,7 +20,7 @@ let containerFieldProps : IHTMLProp list =
 let addGameView (model : Model) (dispatch : Msg -> unit) =
     div containerFieldProps [
         div [] [
-            Box.box' [GenericOption.Props [Style [CSSProp.Width 400; CSSProp.Height 850; CSSProp.MarginRight 150] ] ] [
+            Box.box' [GenericOption.Props [Style [CSSProp.Width 400; CSSProp.Height 850; CSSProp.MarginRight 100] ] ] [
                 Field.div [] [
                     Dropdown.dropdown[ Dropdown.IsHoverable ] [
                         Dropdown.trigger [] [
@@ -165,45 +165,29 @@ let addGameView (model : Model) (dispatch : Msg -> unit) =
                 ]
             ]
         ]
-    
-    
 
-            //Content.content [] [
-            //    Content.Ol.ol [ ] [
-            //        for chessGame in model.DisplayedChessGames do
-            //            li [ ] [ Field.div [ Field.IsHorizontal; Field.IsGroupedRight ] [
-            //                Control.p [ ] [
-            //                    Button.a [
-            //                        Button.Color IColor.IsWhite
-            //                        Button.OnClick (fun _ -> SelectGame chessGame |> Internal |> dispatch )
-            //                ] [ str ("Line 43") ] ]
-            //                Control.p [ ] [
-            //                    Button.a [
-            //                        Button.Color IsPrimary
-            //                        Button.OnClick (fun _ -> DeleteGame chessGame |> Internal |> dispatch )
-            //                    ] [ str "Delete" ]
-            //                ]
-            //            ]
-            //        ]
-            //    ]
-            //]
         
-
-        div [] [
-            Content.content [] [
-                Content.Ol.ol [ ] [
-                    for chessGame in model.DisplayedChessGames do
-                        li [ ] [ Field.div [ Field.IsHorizontal; Field.IsGroupedRight ] [
-                                     Control.p [ ] [
-                                         Button.a [
-                                             Button.Color IColor.IsWhite
-                                             Button.OnClick (fun _ -> SelectGame chessGame |> Internal |> dispatch )
-                                         ] [ str ("Line 96") ] ]
-                                     Control.p [ ] [
-                                         Button.a [
-                                             Button.Color IsPrimary
-                                             Button.OnClick (fun _ -> DeleteGame chessGame |> Internal |> dispatch )
-                                         ] [ str "Delete" ] ] ] ]
+        Box.box' [GenericOption.Props [Style [CSSProp.Width 700; CSSProp.MarginRight 100 ] ] ] [
+            div [] [
+                Content.content [] [
+                    Content.Ol.ol [ ] [
+                        for chessGame in model.DisplayedChessGames do
+                            li [ ] [ Field.div [ Field.IsHorizontal; Field.IsGroupedRight ] [
+                                Control.p [ ] [
+                                    Button.a [
+                                        Button.Color IColor.IsWhite
+                                        Button.OnClick (fun _ -> SelectGame chessGame |> Internal |> dispatch )
+                                    ] [ str ( chessGame.DisplayName ) ]
+                                ]
+                                Control.p [ ] [
+                                    Button.a [
+                                        Button.Color IsPrimary
+                                        Button.OnClick (fun _ -> DeleteGame chessGame |> Internal |> dispatch )
+                                    ] [ str "Delete" ]
+                                ]
+                            ]
+                        ]
+                    ]
                 ]
             ]
         ]
@@ -353,3 +337,4 @@ let addGameView (model : Model) (dispatch : Msg -> unit) =
             ]
         ]
     ]
+

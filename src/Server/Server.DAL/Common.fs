@@ -164,7 +164,7 @@ let findPlayerIdOrCreate playerName =
         |> function
            | Some chessPlayer when chessPlayer.FirstName < firstName ->
                { chessPlayer with FirstName = firstName }
-               |> storage.AddChessPlayer
+               |> storage.UpdateChessPlayer
                |> ignore
                chessPlayer.Id
            | Some chessPlayer ->
@@ -206,10 +206,14 @@ let parseMoves (gameString: string) =
     let gameString = gameString.Replace("?", "").Replace("!", "").Replace("...", ".").Replace("*", "").Replace("   ", "  ").Replace("  ", " ")
     let filteredGameString = gameString |> stripComments |> stripMoveNumbers
     filteredGameString.Split(" ")
+
+let getDisplayName (pgnParser: PgnParserLite)  =
+    pgnParser.White + " vs. " + pgnParser.Black + ", " + pgnParser.Event + "R" + pgnParser.Round + " " + (pgnParser.Date.Year |> string)
     
 
 let pgnParserToChessGame (pgnParser: PgnParserLite) gameString =
     { Event = pgnParser.Event |> Some
+      DisplayName = getDisplayName pgnParser
       Id = Guid.NewGuid()
       PlayerIds = [ findPlayerIdOrCreate pgnParser.White; findPlayerIdOrCreate pgnParser.Black]
       EloWhite = pgnParser.WhiteElo |> string |> Some
@@ -223,6 +227,7 @@ let pgnParserToChessGame (pgnParser: PgnParserLite) gameString =
       MovesList = gameString |> parseMoves
       HasRecorded = false
       Eco = pgnParser.ECO
+      Round = pgnParser.Round |> Some
       Notes = gameString }
 
 let rec parseAllPgn (pgnSplitter: MassivePgnFileSplitter) =
@@ -299,7 +304,7 @@ let chessGameApi : ChessGameApi =
                 match storage.UpdateChessGame chessGame with
                 | Ok true-> return chessGame
                 | Ok false -> return failwith "Failed to update chess game"
-                | Error e -> return failwith e } }    
+                | Error e -> return failwith e } }
 
 let CEApi =
     { getChessPlayers = chessPlayerApi.getChessPlayers

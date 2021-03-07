@@ -37,6 +37,14 @@ let init api =
       Exn = None }, Cmd.OfAsync.perform api.getChessGames () GotChessGames |> Cmd.map Internal
 
 let update msg (model:Model) =
+    let findPlayerNameById id =
+        model.ChessPlayers
+        |> List.tryFind
+            (fun chessPlayer -> chessPlayer.Id = id)
+        |> Option.map ChessPlayer.getPlayerName
+        |> Option.defaultValue ""
+
+    
     match msg with
     | AddBatchGames fileDirectory ->
         model, Cmd.OfAsync.either model.Api.ImportFromPath fileDirectory AddedBatchGames HandleExn |> Cmd.map Internal
@@ -93,7 +101,9 @@ let update msg (model:Model) =
 
     | SelectGame selectedGame ->
         { model with SelectedChessGame = selectedGame |> Some
-                     SelectedChessGameOriginal = selectedGame |> Some }, Cmd.none
+                     SelectedChessGameOriginal = selectedGame |> Some
+                     SelectedPlayer1Name = findPlayerNameById selectedGame.PlayerIds.[0]
+                     SelectedPlayer2Name = findPlayerNameById selectedGame.PlayerIds.[1] }, Cmd.none
 
     | EditPlayerName (editGameType, playerName, playerIndex) ->
         model.ChessPlayers
@@ -115,30 +125,28 @@ let update msg (model:Model) =
                     { model with InputPlayer2Name = playerName }, Cmd.none
 
     | EditPlayerName (editGameType, playerName, playerIndex) ->
-        model.ChessPlayers
-        |> List.tryFind (fun chessPlayer -> ChessPlayer.getPlayerName chessPlayer = playerName)
-        |> function
-           | Some matchingPlayer ->
-                updateInputField
-                    (fun game ->
-                        { game with PlayerIds = game.PlayerIds
-                                              |> List.mapi
-                                                  (fun idx playerId ->
-                                                       if idx = playerIndex then matchingPlayer.Id
-                                                       else playerId ) })
-                    ( match playerIndex, editGameType with
-                      | 0, EditGameType.New -> { model with InputPlayer1Name = playerName }
-                      | 0, EditGameType.Selected -> { model with InputPlayer2Name = playerName }
-                      | 1, EditGameType.New -> { model with SelectedPlayer1Name = playerName }
-                      | 1, EditGameType.Selected -> { model with SelectedPlayer2Name = playerName }
-                      | _ -> model ) editGameType
-           | None ->
-                (match playerIndex, editGameType with
+        let matchingPlayerId = 
+            model.ChessPlayers
+            |> List.tryFind (fun chessPlayer -> ChessPlayer.getPlayerName chessPlayer = playerName)
+            |> function
+               | Some matchingPlayer -> matchingPlayer.Id
+               | None -> Guid.Empty
+
+        updateInputField
+            (fun game ->
+                { game with
+                    PlayerIds = game.PlayerIds
+                                |> List.mapi
+                                    (fun idx playerId ->
+                                        if idx = playerIndex then matchingPlayerId
+                                        else playerId ) })
+            ( match playerIndex, editGameType with
                 | 0, EditGameType.New -> { model with InputPlayer1Name = playerName }
                 | 0, EditGameType.Selected -> { model with InputPlayer2Name = playerName }
                 | 1, EditGameType.New -> { model with SelectedPlayer1Name = playerName }
                 | 1, EditGameType.Selected -> { model with SelectedPlayer2Name = playerName }
-                | _ -> model), Cmd.none
+                | _ -> model ) editGameType
+           
 
     | EditEloWhite (editGameType, elo) ->
         updateInputField (fun game -> { game with EloWhite = Some elo }) model editGameType
@@ -190,15 +198,17 @@ let update msg (model:Model) =
         model.ChessGames
         |> List.filter
                 (fun chessGame ->
-                    model.ChessGameInput.PlayerIds
-                    |> List.forall
-                        (fun playerId ->
-                            if Guid.Empty = playerId then true else List.contains playerId chessGame.PlayerIds) &&
-                            (if model.ChessGameInput.Result = Draw then true
-                             else chessGame.Result = model.ChessGameInput.Result) &&
-                            (if Option.forall String.IsNullOrWhiteSpace model.ChessGameInput.Year then true
-                             else chessGame.Year = model.ChessGameInput.Year))
-
+                    if List.isEmpty model.ChessGameInput.PlayerIds then true
+                    else
+                        model.ChessGameInput.PlayerIds
+                        |> List.forall
+                            (fun playerId ->
+                                if Guid.Empty = playerId then true else List.contains playerId chessGame.PlayerIds) &&
+                                (if model.ChessGameInput.Result = Draw then true
+                                 else chessGame.Result = model.ChessGameInput.Result) &&
+                                (if Option.forall String.IsNullOrWhiteSpace model.ChessGameInput.Year then true
+                                 else chessGame.Year = model.ChessGameInput.Year))
+        |> fun list -> List.take (min 20 list.Length) list
         |> fun matchingGames -> { model with DisplayedChessGames = matchingGames }, Cmd.none
 
     | FilterChessGames ->

@@ -13,4 +13,4 @@ type Msg =
     | HandleExn of exn
     | UpdateErrorString of string
     | UpdatedEcos of Result<unit,ServerError>
-    | StartGame of string
+    | StartGame of (ChessGame option * ChessPlayer option * ChessPlayer option)

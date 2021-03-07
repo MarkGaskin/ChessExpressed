@@ -52,8 +52,8 @@ type InternalMsg =
     | UpdateErrorString of string
 
 type ExternalMsg =
-    | UpdatedGames of ChessGame list
-    | StartGame of ChessGame
+    | ImportedGames
+    | StartGame of (ChessGame option * ChessPlayer option * ChessPlayer option)
 
 type Msg =
     | Internal of InternalMsg

@@ -331,7 +331,7 @@ let addGameView (model : Model) (dispatch : Msg -> unit) =
                         Button.Props [Style [ CSSProp.Height 80 ]]
                         Button.Color IsPrimary
                         Button.Disabled (model.SelectedChessGame <> model.SelectedChessGameOriginal || model.SelectedChessGame.IsNone)
-                        Button.OnClick (fun _ -> dispatch (StartGame model.SelectedChessGame.Value |> External))
+                        Button.OnClick (fun _ -> dispatch (StartGamePressed |> Internal))
                     ] [ str "Start Recording" ]
                 ]
             ]

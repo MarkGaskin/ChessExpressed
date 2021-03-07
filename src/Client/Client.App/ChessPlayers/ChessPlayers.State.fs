@@ -19,10 +19,13 @@ let init api =
       SelectedChessPlayer = None
       ChessPlayerInput = ChessPlayer.defaultPlayer
       ErrorString = ""
-      Exn = None }, Cmd.OfAsync.perform api.getChessPlayers () GotChessPlayers |> Cmd.map Internal
+      Exn = None }, RefreshPlayers |> Internal |> Cmd.ofMsg
 
 let update msg (model:Model) =
     match msg with
+    | RefreshPlayers ->
+        model, Cmd.OfAsync.perform model.Api.getChessPlayers () GotChessPlayers |> Cmd.map Internal
+
     | GotChessPlayers chessPlayers ->
         { model with ChessPlayers = chessPlayers },
             [ UpdateDisplayedChessPlayers |> Internal |> Cmd.ofMsg

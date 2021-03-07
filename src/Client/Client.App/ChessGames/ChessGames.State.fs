@@ -51,7 +51,9 @@ let update msg (model:Model) =
 
     | AddedBatchGames (Ok ()) ->
         window.alert "Successfully imported games"
-        model, Cmd.OfAsync.perform model.Api.getChessGames () GotChessGames |> Cmd.map Internal
+        model, [ ImportedGames |> External |> Cmd.ofMsg
+                 Cmd.OfAsync.perform model.Api.getChessGames () GotChessGames |> Cmd.map Internal ]
+               |> Cmd.batch
 
     | AddedBatchGames (Error (FailedToImportGames e)) ->
         { model with Exn = e |> Some }, FailedToImportGames e |> ServerError.describe |> UpdateErrorString |> Internal |> Cmd.ofMsg
@@ -84,8 +86,7 @@ let update msg (model:Model) =
     | AddedGame chessGame ->
         let updatedGames = chessGame :: model.ChessGames
         { model with ChessGames = updatedGames
-                     ChessGameInput = ChessGame.defaultGame }, [ FilterChessGames |> Internal |> Cmd.ofMsg
-                                                                 updatedGames |> UpdatedGames |> External |> Cmd.ofMsg ]
+                     ChessGameInput = ChessGame.defaultGame }, [ FilterChessGames |> Internal |> Cmd.ofMsg ]
                                                                      |> Cmd.batch
 
     | DeleteGame chessGame ->
@@ -95,8 +96,7 @@ let update msg (model:Model) =
         let updatedGames = List.filter (fun (chessGame:ChessGame) -> chessGame.Id = deletedGame.Id |> not) model.ChessGames
         { model with ChessGames = updatedGames
                      SelectedChessGame = if Option.contains deletedGame model.SelectedChessGame then None else model.SelectedChessGame },
-            [ FilterChessGames |> Internal |> Cmd.ofMsg
-              updatedGames |> UpdatedGames |> External |> Cmd.ofMsg ]
+            [ FilterChessGames |> Internal |> Cmd.ofMsg ]
             |> Cmd.batch
 
     | SelectGame selectedGame ->
@@ -213,3 +213,14 @@ let update msg (model:Model) =
 
     | FilterChessGames ->
         model, Cmd.none
+
+    | StartGamePressed ->
+
+
+        let findPlayerByIdx idx =
+            model.ChessPlayers
+            |> List.tryFind
+                (fun chessPlayer ->
+                    chessPlayer.Id = (Option.map (fun game -> game.PlayerIds |> List.item idx) model.SelectedChessGame |> Option.defaultValue Guid.Empty))
+        
+        model, (model.SelectedChessGame, findPlayerByIdx 0, findPlayerByIdx 1) |> StartGame |> External |> Cmd.ofMsg

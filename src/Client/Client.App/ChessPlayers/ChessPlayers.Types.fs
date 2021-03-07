@@ -33,6 +33,7 @@ type InternalMsg =
     | HandleExn of exn
     | UpdateDisplayedChessPlayers
     | GotChessPlayers of ChessPlayer list
+    | RefreshPlayers
 
 type ExternalMsg =
     | UpdatedPlayers of ChessPlayer list

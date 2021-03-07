@@ -211,7 +211,7 @@ let getDisplayName (pgnParser: PgnParserLite)  =
     pgnParser.White + " vs. " + pgnParser.Black + ", " + pgnParser.Event + "R" + pgnParser.Round + " " + (pgnParser.Date.Year |> string)
     
 
-let pgnParserToChessGame (pgnParser: PgnParserLite) gameString =
+let pgnParserToChessGame (pgnParser: PgnParserLite) (gameString: string) =
     { Event = pgnParser.Event |> Some
       DisplayName = getDisplayName pgnParser
       Id = Guid.NewGuid()
@@ -223,7 +223,7 @@ let pgnParserToChessGame (pgnParser: PgnParserLite) gameString =
                | "1-0" -> WhiteWin
                | "0-1" -> BlackWin
                | _ -> Draw
-      GameNotation = pgnParser.Moves |> String.concat " "
+      GameNotation = gameString.Substring(gameString.IndexOf("1."))
       MovesList = gameString |> parseMoves
       HasRecorded = false
       Eco = pgnParser.ECO

@@ -63,8 +63,13 @@ let update (msg: Msg) (model: Model): Model * Cmd<Msg> =
         let cMdl, cCmd = ChessGames.State.update msg model.ChessGamesModel
         { model with ChessGamesModel = cMdl }, cCmd |> Cmd.map ChessGamesMsg
 
-    | ChessGamesMsg (ChessGames.Types.External msg) ->
-        model, Cmd.none
+    | ChessGamesMsg (ChessGames.Types.External (ChessGames.Types.ImportedGames)) ->
+        let cMdl, cCmd = ChessPlayers.State.update ChessPlayers.Types.RefreshPlayers model.ChessPlayersModel
+        { model with ChessPlayersModel = cMdl }, cCmd |> Cmd.map ChessPlayersMsg
+
+    | ChessGamesMsg (ChessGames.Types.External (ChessGames.Types.ExternalMsg.StartGame args)) ->
+        let cMdl, cCmd = ChessBoard.State.update (ChessBoard.Types.StartGame args) model.ChessBoardModel
+        { model with ChessBoardModel = cMdl }, cCmd |> Cmd.map ChessBoardMsg
 
     | ChessPlayersMsg (ChessPlayers.Types.External (ChessPlayers.Types.UpdatedPlayers updatedPlayers)) ->
         let cMdl, cCmd = ChessGames.State.update (ChessGames.Types.GotChessPlayers updatedPlayers) model.ChessGamesModel

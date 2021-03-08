@@ -51,9 +51,13 @@ let update (msg: Msg) (model: Model): Model * Cmd<Msg> =
     | SetTab tabType ->
         { model with ActiveTab = tabType }, Cmd.none
 
-    | ChessBoardMsg msg ->
+    | ChessBoardMsg (ChessBoard.Types.Internal msg) ->
         let cMdl, cCmd = ChessBoard.State.update msg model.ChessBoardModel
         { model with ChessBoardModel = cMdl }, cCmd |> Cmd.map ChessBoardMsg
+
+    | ChessBoardMsg (ChessBoard.Types.External (ChessBoard.Types.GameRecorded chessGame)) ->
+        // Update hasRecorded in db
+        model, Cmd.none
 
     | ChessPlayersMsg (ChessPlayers.Types.Internal msg) ->
         let cMdl, cCmd = ChessPlayers.State.update msg model.ChessPlayersModel
@@ -69,7 +73,7 @@ let update (msg: Msg) (model: Model): Model * Cmd<Msg> =
 
     | ChessGamesMsg (ChessGames.Types.External (ChessGames.Types.ExternalMsg.StartGame args)) ->
         let cMdl, cCmd = ChessBoard.State.update (ChessBoard.Types.StartGame args) model.ChessBoardModel
-        { model with ChessBoardModel = cMdl }, cCmd |> Cmd.map ChessBoardMsg
+        { model with ChessBoardModel = cMdl; ActiveTab = RecordGame }, cCmd |> Cmd.map ChessBoardMsg
 
     | ChessPlayersMsg (ChessPlayers.Types.External (ChessPlayers.Types.UpdatedPlayers updatedPlayers)) ->
         let cMdl, cCmd = ChessGames.State.update (ChessGames.Types.GotChessPlayers updatedPlayers) model.ChessGamesModel

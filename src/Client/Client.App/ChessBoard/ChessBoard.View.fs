@@ -3,15 +3,19 @@ module Client.App.ChessBoard.View
 open Shared
 open Fable.Remoting.Client
 open Fable.React
+open Fable.React.Props
+open Fulma
 open Fable.Core.JsInterop
+open Fable.React.HookBindings
 open Browser
 open Browser.Types
 open Browser.Blob
 open Fable.Core
-open Fable.React.Props
+open Types
+open ChessPieces
 
 type ChessBoardProps =
-    | Position of string
+    | Position of obj
     | TransitionDuration of int
     | Width of int
     | DarkSquareStyle of obj
@@ -19,21 +23,65 @@ type ChessBoardProps =
     | SquareStyles of obj
     | ShowNotation of bool
 
+type RenderProps =
+    | Status
+    | StartRecording of (unit -> unit)
+    | StopRecording of (unit -> unit)
+    | MediaBlobUrl of Blob
+
+let inline chessBoard (props : ChessBoardProps list) (elems : ReactElement list) : ReactElement =
+    ofImport "default" "chessboardjsx" (keyValueList CaseRules.LowerFirst props) elems
+
+type useMediaRecorderType = Blob -> (string * (unit -> unit) * (unit -> unit) * (unit -> Blob))
+
+let useMediaRecorder : useMediaRecorderType = import "useReactMediaRecorder" "react-media-recorder"
+
 
 let darkSquareStyle = createObj ["backgroundColor" ==> "rgba(220, 220, 220)"]
 let lightSquareStyle = createObj ["backgroundColor" ==> "rgb(255, 255, 255)"]
 
-let squareObj = createObj ["backgroundColor" ==> "rgba(255, 150, 150,0.6)"]
-let dark1squareObj = createObj ["backgroundColor" ==> "rgba(255, 80, 80,0.7)"]
-let dark2squareObj = createObj ["backgroundColor" ==> "rgba(255, 0, 0,0.8)"]
-let dark4squareObj = createObj ["backgroundColor" ==> "rgba(180, 0, 0,0.9)"]
 
-let bsquareObj = createObj ["backgroundColor" ==> "rgba(150, 200, 255, 0.6)"]
-let bdark1squareObj = createObj ["backgroundColor" ==> "rgba(45, 110, 255,0.7)"]
-let bdark2squareObj = createObj ["backgroundColor" ==> "rgba(0, 40, 255,0.7)"]
-let bdark4squareObj = createObj ["backgroundColor" ==> "rgba(0, 40, 150,0.8)"]
 
-//let contestedSquare = createObj ["background"]
+//FunctionComponent.Of(fun props ->
+//let (status, startRec, stopRec, mediaBlob ) = useMediaRecorder(Blob.Create props)
 
-let squareStyle = createObj ["e5" ==> squareObj; "e4" ==> squareObj; "e3" ==> dark1squareObj; "d4" ==> dark2squareObj; "d3" ==> dark2squareObj; "c3" ==> dark4squareObj;
-                             "d6" ==> bsquareObj; "d7" ==> bdark1squareObj; "e7" ==> bdark4squareObj; "e8" ==> bdark2squareObj; "f7" ==> bdark2squareObj; "c7" ==> bdark4squareObj]
+
+//) ()
+
+let chessBoardView (model : Model) =
+    Container.container [ ] [
+        Column.column [
+            Column.Width (Screen.All, Column.Is6)
+            Column.Offset (Screen.All, Column.Is3) ]
+            [
+            button [OnClick (fun _ -> () )] [];
+            chessBoard [ ChessBoardProps.Position (model.AllPieces |> createPositionObject)
+                         ChessBoardProps.Width 700;
+                         ChessBoardProps.TransitionDuration transitionDuration;
+                         ChessBoardProps.DarkSquareStyle darkSquareStyle;
+                         ChessBoardProps.LightSquareStyle lightSquareStyle;
+                         ChessBoardProps.SquareStyles (model.SquareStyles);
+                         ChessBoardProps.ShowNotation false ] []
+            ]
+    ]
+
+
+type MediaRecorderProps =
+    | Audio of bool
+    | Video of bool
+    | Render of useMediaRecorderType
+
+
+let inline reactMediaRecorder (props : MediaRecorderProps list) (elems : ReactElement list) : ReactElement =
+    ofImport "ReactMediaRecorder" "react-media-recorder" (keyValueList CaseRules.LowerFirst props) elems
+
+let recordGameView (model : Model) (dispatch : Msg -> unit) =
+    //canvas [] [
+    //FunctionComponent.Of (fun props -> 
+    //    let (status, startRec, stopRec, mediaBlob ) = useMediaRecorder(Blob.Create props)
+    //reactMediaRecorder [MediaRecorderProps.Audio true; MediaRecorderProps.Video true; MediaRecorderProps.Render ] [
+        chessBoardView model
+    //]
+
+
+            //) [|createObj ["Video" ==> "true"; "Audio" ==> "true" ]|]

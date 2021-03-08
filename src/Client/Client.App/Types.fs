@@ -22,10 +22,7 @@ type IMediaProps =
     | Audio of bool
     | Video of bool
 
-type useMediaRecorderType = Blob -> (string * (unit -> unit) * (unit -> unit) * (unit -> Blob))
 
-let useMediaRecorder : useMediaRecorderType = import "useReactMediaRecorder" "react-media-recorder"
-   
 
 type TabsType =
     | AddPlayer

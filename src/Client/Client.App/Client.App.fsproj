@@ -11,6 +11,7 @@
         <Compile Include="ChessPlayers\ChessPlayers.Types.fs" />
         <Compile Include="ChessPlayers\ChessPlayers.State.fs" />
         <Compile Include="ChessPlayers\ChessPlayers.View.fs" />
+        <Compile Include="ChessBoard\ChessPieces.fs" />
         <Compile Include="ChessBoard\ChessBoard.Types.fs" />
         <Compile Include="ChessBoard\ChessBoard.State.fs" />
         <Compile Include="ChessBoard\ChessBoard.View.fs" />

@@ -65,7 +65,13 @@ let update msg (model:Model) =
         { model with ImportDirectory = importDirectory }, Cmd.none
 
     | StartGamePressed ->
-        model, Cmd.none
+        let findPlayerByIdx idx =
+            model.ChessPlayers
+            |> List.tryFind
+                (fun chessPlayer ->
+                    chessPlayer.Id = (Option.map (fun game -> game.PlayerIds |> List.item idx) model.SelectedChessGame |> Option.defaultValue Guid.Empty))
+    
+        model, (model.SelectedChessGame, findPlayerByIdx 0, findPlayerByIdx 1) |> StartGame |> External |> Cmd.ofMsg
 
     | GotChessGames chessGames ->
         { model with ChessGames = chessGames }, FilterChessGames |> Internal |> Cmd.ofMsg
@@ -213,14 +219,3 @@ let update msg (model:Model) =
 
     | FilterChessGames ->
         model, Cmd.none
-
-    | StartGamePressed ->
-
-
-        let findPlayerByIdx idx =
-            model.ChessPlayers
-            |> List.tryFind
-                (fun chessPlayer ->
-                    chessPlayer.Id = (Option.map (fun game -> game.PlayerIds |> List.item idx) model.SelectedChessGame |> Option.defaultValue Guid.Empty))
-        
-        model, (model.SelectedChessGame, findPlayerByIdx 0, findPlayerByIdx 1) |> StartGame |> External |> Cmd.ofMsg

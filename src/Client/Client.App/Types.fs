@@ -31,7 +31,6 @@ type TabsType =
 
 type Model =
     { Api: ICEApi
-      ChessGames: ChessGame list
       ChessBoardModel: ChessBoard.Types.Model
       ChessPlayersModel: ChessPlayers.Types.Model
       ChessGamesModel: ChessGames.Types.Model
@@ -39,9 +38,6 @@ type Model =
       }
 
 type Msg =
-    | GotChessGames of ChessGame list
-    | AddChessGame
-    | AddedChessGame of ChessGame
     | StartRecording of (unit -> unit)
     | SetTab of TabsType
     | ChessBoardMsg of ChessBoard.Types.Msg

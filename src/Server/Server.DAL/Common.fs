@@ -196,9 +196,11 @@ open TimHanewich.Chess.Pgn
 open System.Text.RegularExpressions
 
 let stripComments (gameString:string) = 
-    Regex.Replace(gameString, @"?\{.*?\}", String.Empty)
+    Regex.Replace(gameString, @" ?\{.*?\}", String.Empty)
     |> fun updatedString ->
-        Regex.Replace(updatedString, @"?\(.*?\)", String.Empty)
+        Regex.Replace(updatedString, @" ?\(.*?\)", String.Empty)
+    |> fun updatedString ->
+        Regex.Replace(updatedString, @" ?\[.*?\]", String.Empty)
 
 let stripMoveNumbers (gameString:string) = 
     Regex.Replace(gameString, @"\d+\.", String.Empty)
@@ -207,11 +209,20 @@ let stripResult (gameString:string) =
     gameString.Replace("1/2-1/2", "").Replace("1-0", "").Replace("0-1", "")
 
 let parseMoves (gameString: string) =
-    let gameString = gameString.Substring(gameString.IndexOf("1."))
-    let filteredGameString = gameString |> stripComments |> stripMoveNumbers |> stripResult
-    let finalGameString = filteredGameString.Replace("?", "").Replace("+", "").Replace("x", "").Replace("#", "").Replace("!", "").Replace("...", ".").Replace("*", "").Replace("   ", "  ").Replace("  ", " ")
+    let filteredGameString = gameString |> stripComments
+    let notationString = filteredGameString.Substring(gameString.IndexOf("1."))  |> stripMoveNumbers |> stripResult
+    let finalGameString = notationString.Replace("?", "")
+                                        .Replace("+", "")
+                                        .Replace("x", "")
+                                        .Replace("#", "")
+                                        .Replace("!", "")
+                                        .Replace("\n", " ")
+                                        .Replace("...", ".")
+                                        .Replace("*", "")
+                                        .Replace("   ", "  ")
+                                        .Replace("  ", " ")
     finalGameString.Split(" ")
-    |> Array.map (fun (string:string) -> string.Trim())
+    //|> Array.map (fun (string:string) -> string.Trim())
 
 let getDisplayName (pgnParser: PgnParserLite)  =
     pgnParser.White + " vs. " + pgnParser.Black + ", " + pgnParser.Event + "R" + pgnParser.Round + " " + (pgnParser.Date.Year |> string)
@@ -270,7 +281,8 @@ let importGames (directoryPath: string) =
                                     |> List.exists (ChessGame.isRoughlyEqual game)
                                     |> function
                                        | true -> ()
-                                       | false -> storage.AddChessGame game |> ignore)
+                                       | false ->
+                                            storage.AddChessGame game |> ignore)
                         with _ ->
                             ()
                         )

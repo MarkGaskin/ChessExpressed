@@ -4,8 +4,8 @@ open Shared
 open Shared.CEError
 open ChessPieces
 
-let transitionDuration = 800
-let moveDuration = 3000
+let transitionDuration = 500
+let moveDuration = 1000
 
 type Model =
     { Api: ICEApi

@@ -20,7 +20,6 @@ let init (api: ICEApi) (): Model * Cmd<Msg> =
       ChessBoardModel = cBMdl
       ChessPlayersModel = cPMdl
       ChessGamesModel = cGMdl
-      ChessGames = []
       ActiveTab = TabsType.AddPlayer },
         [ cBCmd |> Cmd.map ChessBoardMsg
           cPCmd |> Cmd.map ChessPlayersMsg
@@ -29,16 +28,6 @@ let init (api: ICEApi) (): Model * Cmd<Msg> =
 
 let update (msg: Msg) (model: Model): Model * Cmd<Msg> =
     match msg with
-    | GotChessGames todos ->
-        JS.console.log "Canvas recorder starting"
-        { model with ChessGames = todos }, Cmd.none
-    | AddChessGame ->
-        //let todo = ChessGame.create model.Input
-        //let cmd = Cmd.OfAsync.perform todosApi.addChessGame todo AddedTodo
-        model, Cmd.none // cmd
-    | AddedChessGame todo ->
-        { model with ChessGames = model.ChessGames @ [ todo ] }, Cmd.none
-
     | StartRecording startRecording->
         let canvas = document.getElementsByName("RecordingCanvas").[0] :?> HTMLCanvasElement
 

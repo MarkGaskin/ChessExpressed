@@ -13,6 +13,7 @@ open Browser.Blob
 open Fable.Core
 open Types
 open ChessPieces
+open SquareStyles
 
 type ChessBoardProps =
     | Position of obj
@@ -55,7 +56,7 @@ let chessBoardView (model : Model) =
             Column.Offset (Screen.All, Column.Is3) ]
             [
             button [OnClick (fun _ -> () )] [];
-            chessBoard [ ChessBoardProps.Position (model.AllPieces |> createPositionObject)
+            chessBoard [ ChessBoardProps.Position model.FENPosition //model.AllPieces |> createPositionObject //
                          ChessBoardProps.Width 700;
                          ChessBoardProps.TransitionDuration transitionDuration;
                          ChessBoardProps.DarkSquareStyle darkSquareStyle;
@@ -76,7 +77,7 @@ let inline reactMediaRecorder (props : MediaRecorderProps list) (elems : ReactEl
     ofImport "ReactMediaRecorder" "react-media-recorder" (keyValueList CaseRules.LowerFirst props) elems
 
 let recordGameView (model : Model) (dispatch : Msg -> unit) =
-    //canvas [] [
+    //canvas [Style [CSSProp.Width 1200; CSSProp.Height 1000; CSSProp. ] ] [
     //FunctionComponent.Of (fun props -> 
     //    let (status, startRec, stopRec, mediaBlob ) = useMediaRecorder(Blob.Create props)
     //reactMediaRecorder [MediaRecorderProps.Audio true; MediaRecorderProps.Video true; MediaRecorderProps.Render ] [

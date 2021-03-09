@@ -56,9 +56,11 @@ let update msg (model:Model) =
                |> Cmd.batch
 
     | AddedBatchGames (Error (FailedToImportGames e)) ->
+        window.alert "Error importing games"
         { model with Exn = e |> Some }, FailedToImportGames e |> ServerError.describe |> UpdateErrorString |> Internal |> Cmd.ofMsg
 
     | AddedBatchGames (Error e) ->
+        window.alert "Error importing games"
         model, e |> ServerError.describe |> UpdateErrorString |> Internal |> Cmd.ofMsg
 
     | EditImportDirectory importDirectory ->

@@ -241,7 +241,7 @@ let pgnParserToChessGame (pgnParser: PgnParserLite) (gameString: string) =
                | "1-0" -> WhiteWin
                | "0-1" -> BlackWin
                | _ -> Draw
-      GameNotation = gameString.Substring(gameString.IndexOf("1."))
+      GameNotation = gameString |> stripComments |> fun string -> string.Substring(string.IndexOf("1."))
       MovesList = gameString |> parseMoves
       HasRecorded = false
       Eco = pgnParser.ECO

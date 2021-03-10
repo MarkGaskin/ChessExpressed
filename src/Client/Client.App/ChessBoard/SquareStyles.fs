@@ -56,6 +56,11 @@ let createSquareStyleObject (wSquareCoverage: Square list) (bSquareCoverage: Squ
             |> List.append objSeq) []
     |> createObj
 
+let createGameOverStyle (piece: Piece) =
+    createJsSeq "backgroundColor" (getPureSquareColor (piece.Color |> Piece.colorNot) 4)
+    |> createObj
+    |> createJsSeq (Square.toString piece.Square)
+    |> createObj
 
 
 let createPositionObject (allPieces : Piece list) =

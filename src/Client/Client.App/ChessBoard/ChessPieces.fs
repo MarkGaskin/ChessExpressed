@@ -88,3 +88,8 @@ module Piece =
         | Rook -> "R"
         | Queen -> "Q"
         | King -> "K"
+
+    let colorNot =
+        function
+        | Black -> White
+        | White -> Black

@@ -79,26 +79,21 @@ let update msg (model:Model) =
                |> Cmd.batch
 
     | ParseMove () when model.MovesList.IsEmpty || model.MovesList.Head |> String.IsNullOrWhiteSpace ->
-        //let newPieceList =
-        //    match model.ChessGame.Result with
-        //    | Draw ->
-        //        model.AllPieces
-        //        |> List.filter (fun piece -> piece.PieceType = King)
-        //    | WhiteWin ->
-        //        model.AllPieces
-        //        |> List.filter (fun piece -> piece.Color = White || piece.PieceType = King)
-        //    | BlackWin ->
-        //        model.AllPieces
-        //        |> List.filter (fun piece -> piece.Color = Black || piece.PieceType = King)
+        let squareStyle =
+            match model.ChessGame.Result with
+            | Draw ->
+                model.SquareStyles
+            | WhiteWin ->
+                model.AllPieces
+                |> List.find (fun piece -> piece.Color = Black && piece.PieceType = King)
+                |> createGameOverStyle
+            | BlackWin ->
+                model.AllPieces
+                |> List.find (fun piece -> piece.Color = White && piece.PieceType = King)
+                |> createGameOverStyle
 
-        //let wSquareCoverage, bSquareCoverage = getSquareCoverage newPieceList
-        
-        //let squareStyle = createSquareStyleObject wSquareCoverage bSquareCoverage
+        { model with SquareStyles = squareStyle }, Cmd.none
 
-        //{ model with AllPieces = newPieceList
-        //             FENPosition = createFen newPieceList (if model.WhiteToMove then White else Black)
-        //             SquareStyles = squareStyle }, Cmd.none
-        model, Cmd.none
 
     | ParseMove () when model.MovesList.Head.StartsWith("O") ->
         model, Cmd.OfAsync.perform delayMsg (moveDuration/2, ()) ParseCastle |> Cmd.map Internal

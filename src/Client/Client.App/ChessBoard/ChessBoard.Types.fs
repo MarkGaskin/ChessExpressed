@@ -11,9 +11,12 @@ type Model =
     { Api: ICEApi
       FENPosition: string
       AllPieces: Piece list
+      PreviousPieceCount: int
       ChessGame: ChessGame
       WhitePlayer : ChessPlayer
+      WhitePlayerImage: string
       BlackPlayer : ChessPlayer
+      BlackPlayerImage : string
       WhiteToMove: bool
       MovesList: string list
       ErrorString: string

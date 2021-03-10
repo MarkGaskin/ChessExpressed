@@ -23,6 +23,7 @@ type ChessBoardProps =
     | LightSquareStyle of obj
     | SquareStyles of obj
     | ShowNotation of bool
+    | OnDrop of (unit -> unit)
 
 type RenderProps =
     | Status
@@ -61,7 +62,8 @@ let chessBoardView (model : Model) =
                          ChessBoardProps.DarkSquareStyle darkSquareStyle;
                          ChessBoardProps.LightSquareStyle lightSquareStyle;
                          ChessBoardProps.SquareStyles (model.SquareStyles);
-                         ChessBoardProps.ShowNotation false ] []
+                         ChessBoardProps.ShowNotation false
+                         ChessBoardProps.OnDrop (fun _ -> JS.console.error("I'm alive"))] []
             ]
     ]
 
@@ -76,7 +78,7 @@ let inline reactMediaRecorder (props : MediaRecorderProps list) (elems : ReactEl
     ofImport "ReactMediaRecorder" "react-media-recorder" (keyValueList CaseRules.LowerFirst props) elems
 
 let containerFieldProps : IHTMLProp list =
-    [ Style [CSSProp.Padding 40; CSSProp.Width 1400; CSSProp.Height 800; CSSProp.Margin "auto"; CSSProp.Display DisplayOptions.Flex; CSSProp.Border "5px solid blue" ] ]
+    [ Style [CSSProp.Padding 40; CSSProp.Width 1400; CSSProp.Height 790; CSSProp.Margin "auto"; CSSProp.Display DisplayOptions.Flex; CSSProp.Border "5px solid blue" ] ]
 
 
 let recordGameView (model : Model) (dispatch : Msg -> unit) =
@@ -96,12 +98,8 @@ let recordGameView (model : Model) (dispatch : Msg -> unit) =
                                               CSSProp.FlexDirection "column"
                                               CSSProp.Color "White"] ] ] [
             div [] [str (ChessPlayer.getPlayerName model.BlackPlayer)]
-            Image.image [Image.Option.Props [Src "./ChessPlayers/Magnus Carlsen.jpg" ] ] []
-            Image.image [Image.Option.Props [Src ".\ChessPlayers\Magnus Carlsen.jpg" ] ] []
-            Image.image [Image.Option.Props [Src "..\ChessPlayers\Magnus Carlsen.jpg" ] ] []
-            Image.image [Image.Option.Props [Src "../ChessPlayers/Magnus Carlsen.jpg" ] ] []
-            Image.image [Image.Option.Props [Src "ChessPlayers\Magnus Carlsen.jpg" ] ] []
-            Image.image [Image.Option.Props [Src "ChessPlayers/Magnus Carlsen.jpg" ] ] []
+            div [] [img [ Src model.WhitePlayerImage; HTMLAttr.Height 200; HTMLAttr.Width 200 ] ]
+            div [] [img [ Src model.BlackPlayerImage; HTMLAttr.Height 200; HTMLAttr.Width 200 ] ]
             div [ Style [CSSProp.MarginTop "auto" ] ] [str (ChessPlayer.getPlayerName model.WhitePlayer)]
         ]
         chessBoardView model

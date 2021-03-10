@@ -19,6 +19,10 @@ open FEN
 open ParseMove
 open System
 
+/// Uses Fable's Emit to call JavaScript directly and play sounds
+[<Emit("(new Audio($0)).play();")>]
+let playSound (fileName: string) = jsNative
+
 let delayMsg ((count, returnVal): int*'a) =
     async { do! Async.Sleep count
             return returnVal }
@@ -39,9 +43,12 @@ let init api =
     { Api = api
       FENPosition = startFEN
       AllPieces = pieces
+      PreviousPieceCount = pieces.Length
       ChessGame = ChessGame.defaultGame
       WhitePlayer = ChessPlayer.defaultPlayer
+      WhitePlayerImage = ""
       BlackPlayer = ChessPlayer.defaultPlayer
+      BlackPlayerImage = ""
       WhiteToMove = true
       MovesList = List.empty
       SquareStyles = squareStyle
@@ -59,10 +66,15 @@ let update msg (model:Model) =
         model, Cmd.none
 
     | StartGame (Some chessGame, Some whitePlayer, Some blackPlayer) ->
+        let wImage = "/Image/" + ChessPlayer.getPlayerName whitePlayer + ".jpg"
+        let bImage = "/Image/" + ChessPlayer.getPlayerName blackPlayer + ".jpg"
+
         let freshModel, _ = init model.Api
         { freshModel with ChessGame = chessGame
                           WhitePlayer = whitePlayer
+                          WhitePlayerImage = wImage
                           BlackPlayer = blackPlayer
+                          BlackPlayerImage = bImage
                           MovesList = chessGame.MovesList |> List.ofArray }, StartRecording |> Internal |> Cmd.ofMsg
 
     | StartGame _ ->
@@ -70,12 +82,11 @@ let update msg (model:Model) =
         model, Cmd.none
 
     | StartRecording ->
-        let wSquareCoverage, bSquareCoverage = getSquareCoverage model.AllPieces
+    //    let wSquareCoverage, bSquareCoverage = getSquareCoverage model.AllPieces
         
-        let squareStyle = createSquareStyleObject wSquareCoverage bSquareCoverage
+    //    let squareStyle = createSquareStyleObject wSquareCoverage bSquareCoverage
         
-        model, [ squareStyle |> UpdateSquareStyles |> Internal |> Cmd.ofMsg
-                 Cmd.OfAsync.perform delayMsg (moveDuration, ()) ParseMove |> Cmd.map Internal ]
+        model, [ Cmd.OfAsync.perform delayMsg (moveDuration, ()) ParseMove |> Cmd.map Internal ]
                |> Cmd.batch
 
     | ParseMove () when model.MovesList.IsEmpty || model.MovesList.Head |> String.IsNullOrWhiteSpace ->
@@ -91,6 +102,11 @@ let update msg (model:Model) =
                 model.AllPieces
                 |> List.find (fun piece -> piece.Color = White && piece.PieceType = King)
                 |> createGameOverStyle
+
+        if model.ChessGame.Result = Draw then
+            playSound "/Sounds/draw.wav"
+        else
+            playSound "/Sounds/victory.wav"
 
         { model with SquareStyles = squareStyle }, Cmd.none
 
@@ -116,7 +132,8 @@ let update msg (model:Model) =
                      FENPosition = createFen newPieceList (if model.WhiteToMove then White else Black)
                      WhiteToMove = model.WhiteToMove |> not
                      SquareStyles = squareStyle },
-            [ Cmd.OfAsync.perform delayMsg (moveDuration/2, ()) ParseMove |> Cmd.map Internal ]
+            [ squareStyle |> UpdateSquareStyles |> Internal |> Cmd.ofMsg
+              Cmd.OfAsync.perform delayMsg (moveDuration/2, ()) ParseMove |> Cmd.map Internal ]
             |> Cmd.batch
                 
 
@@ -144,7 +161,13 @@ let update msg (model:Model) =
         
 
     | UpdateSquareStyles squareStyles ->
-        { model with SquareStyles = squareStyles }, Cmd.none
+        if model.AllPieces.Length < model.PreviousPieceCount then
+            playSound "/Sounds/capture.mp3"
+        else
+            playSound "/Sounds/move.mp3"
+
+        { model with SquareStyles = squareStyles
+                     PreviousPieceCount = model.AllPieces.Length }, Cmd.none
 
     | UpdateErrorString string ->
         JS.console.error string

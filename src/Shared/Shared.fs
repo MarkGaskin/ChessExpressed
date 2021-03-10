@@ -4,7 +4,6 @@ open System
 
 open Shared.CEError
 
-
 type ChessGameResult =
     | WhiteWin
     | BlackWin

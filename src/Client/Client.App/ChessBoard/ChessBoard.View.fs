@@ -55,7 +55,6 @@ let chessBoardView (model : Model) =
             Column.Width (Screen.All, Column.Is6)
             Column.Offset (Screen.All, Column.Is3) ]
             [
-            button [OnClick (fun _ -> () )] [];
             chessBoard [ ChessBoardProps.Position model.FENPosition //model.AllPieces |> createPositionObject //
                          ChessBoardProps.Width 700;
                          ChessBoardProps.TransitionDuration transitionDuration;
@@ -76,13 +75,37 @@ type MediaRecorderProps =
 let inline reactMediaRecorder (props : MediaRecorderProps list) (elems : ReactElement list) : ReactElement =
     ofImport "ReactMediaRecorder" "react-media-recorder" (keyValueList CaseRules.LowerFirst props) elems
 
+let containerFieldProps : IHTMLProp list =
+    [ Style [CSSProp.Padding 40; CSSProp.Width 1400; CSSProp.Height 800; CSSProp.Margin "auto"; CSSProp.Display DisplayOptions.Flex; CSSProp.Border "5px solid blue" ] ]
+
+
 let recordGameView (model : Model) (dispatch : Msg -> unit) =
-    //canvas [Style [CSSProp.Width 1200; CSSProp.Height 1000; CSSProp. ] ] [
     //FunctionComponent.Of (fun props -> 
     //    let (status, startRec, stopRec, mediaBlob ) = useMediaRecorder(Blob.Create props)
     //reactMediaRecorder [MediaRecorderProps.Audio true; MediaRecorderProps.Video true; MediaRecorderProps.Render ] [
+    div containerFieldProps [
+        Box.box' [GenericOption.Props [Style [CSSProp.Width 400;
+                                              CSSProp.FontSize 36;
+                                              CSSProp.FontWeight "Bold";
+                                              CSSProp.MarginRight -200;
+                                              CSSProp.TextAlign TextAlignOptions.Center;
+                                              CSSProp.MarginTop -10;
+                                              CSSProp.MarginBottom -10;
+                                              CSSProp.BackgroundColor "Transparent"
+                                              CSSProp.Display DisplayOptions.Flex
+                                              CSSProp.FlexDirection "column"
+                                              CSSProp.Color "White"] ] ] [
+            div [] [str (ChessPlayer.getPlayerName model.BlackPlayer)]
+            Image.image [Image.Option.Props [Src "./ChessPlayers/Magnus Carlsen.jpg" ] ] []
+            Image.image [Image.Option.Props [Src ".\ChessPlayers\Magnus Carlsen.jpg" ] ] []
+            Image.image [Image.Option.Props [Src "..\ChessPlayers\Magnus Carlsen.jpg" ] ] []
+            Image.image [Image.Option.Props [Src "../ChessPlayers/Magnus Carlsen.jpg" ] ] []
+            Image.image [Image.Option.Props [Src "ChessPlayers\Magnus Carlsen.jpg" ] ] []
+            Image.image [Image.Option.Props [Src "ChessPlayers/Magnus Carlsen.jpg" ] ] []
+            div [ Style [CSSProp.MarginTop "auto" ] ] [str (ChessPlayer.getPlayerName model.WhitePlayer)]
+        ]
         chessBoardView model
-    //]
+    ]
 
 
             //) [|createObj ["Video" ==> "true"; "Audio" ==> "true" ]|]

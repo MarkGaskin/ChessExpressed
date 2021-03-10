@@ -30,6 +30,31 @@ let createRankFen (pieces: Piece list) =
     |> fun strings ->
         String.concat "" strings
 
+let canCastleFen (allPieces: Piece list) =
+    ( allPieces
+      |> List.tryFind ((=) {PieceType = Rook; Square = Square.create 8 1; Color = White})
+      |> function
+         | Some piece -> "K"
+         | None -> "" )
+    +
+    ( allPieces
+      |> List.tryFind ((=) {PieceType = Rook; Square = Square.create 1 1; Color = White})
+      |> function
+         | Some piece -> "Q"
+         | None -> "" )
+    +
+    ( allPieces
+      |> List.tryFind ((=) {PieceType = Rook; Square = Square.create 1 8; Color = Black})
+      |> function
+         | Some piece -> "k"
+         | None -> "" )
+    +
+    ( allPieces
+      |> List.tryFind ((=) {PieceType = Rook; Square = Square.create 8 8; Color = Black})
+      |> function
+         | Some piece -> "q"
+         | None -> "" )
+
 let createFen (allPieces: Piece list) colorToMove  =
     [1..8]
     |> List.map
@@ -40,7 +65,7 @@ let createFen (allPieces: Piece list) colorToMove  =
     |> fun strings ->
         String.concat "/" strings
     |> fun boardString ->
-        boardString + if colorToMove = White then " w - - 6 50" else " b - - 6 50"
+        boardString + if colorToMove = White then " w " else " b " + (canCastleFen allPieces) + " - 6 50"
 
 let rec rankStringToPieces rank file (rankString : char list) =
     if rankString.IsEmpty then

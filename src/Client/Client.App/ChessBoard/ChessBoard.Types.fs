@@ -27,6 +27,7 @@ type InternalMsg =
     | StartGame of (ChessGame option * ChessPlayer option * ChessPlayer option)
     | StartRecording
     | ParseMove of unit
+    | ParseCastle of unit
     | UpdateSquareStyles of obj
 
 

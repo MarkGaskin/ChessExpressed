@@ -13,9 +13,9 @@ let getPureSquareColor pieceColor count =
     | White, 2 -> "rgba(255, 80, 80,0.7)"
     | White, 3 -> "rgba(220, 0, 0,0.7)"
     | White, _ -> "rgba(130, 0, 0,0.8)"
-    | Black, 1 -> "rgba(180, 220, 255, 0.6)"
-    | Black, 2 -> "rgba(80, 150, 255,0.7)"
-    | Black, 3 -> "rgba(0, 80, 250,0.7)"
+    | Black, 1 -> "rgba(170, 210, 255, 0.6)"
+    | Black, 2 -> "rgba(70, 140, 255,0.7)"
+    | Black, 3 -> "rgba(0, 75, 250,0.7)"
     | Black, _ -> "rgba(0, 60, 160,0.8)"
 
 

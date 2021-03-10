@@ -86,19 +86,19 @@ let parseMove (moveString:string) (pieces: Piece list) (colorToMove: PieceColor)
         let rank, file = moveString.[moveString.Length-1] |> string |> int, parseFile moveString.[moveString.Length-2]
         let square = Square.create file rank
 
-        let pieces =
+        let filteredPieces =
             pieces
             |> List.filter (fun piece -> piece.Square <> square)
 
         let simpleUpdate pieceType =
-            pieces
+            filteredPieces
             |> List.map
                 (fun piece ->
-                    if piece.PieceType = pieceType && piece.Color = colorToMove && List.contains square (getPieceMovement piece pieces) then { piece with Square = square }
+                    if piece.PieceType = pieceType && piece.Color = colorToMove && List.contains square (getPieceMovement piece filteredPieces) then { piece with Square = square }
                     else piece )
         let complexUpdate pieceType =
             let filterFunction = parseUnknown moveString.[1]
-            pieces
+            filteredPieces
             |> List.map
                 (fun piece ->
                     if piece.PieceType = pieceType && piece.Color = colorToMove && filterFunction piece then { piece with Square = square }
@@ -125,7 +125,17 @@ let parseMove (moveString:string) (pieces: Piece list) (colorToMove: PieceColor)
         | _ when moveString.Length = 2 ->
             simpleUpdate Pawn
         | _ ->
-            pieces
+            let updatedPieces =
+                if filteredPieces = pieces then
+                    filteredPieces
+                    |> List.filter
+                        (fun piece ->
+                            if colorToMove = White then
+                                piece.Square <> (square - (0,1))
+                            else
+                                piece.Square <> (square + (0,1)))
+                else filteredPieces
+            updatedPieces
             |> List.map
                 (fun piece ->
                     if piece.Color = colorToMove &&

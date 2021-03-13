@@ -29,7 +29,7 @@ let delayMsg ((count, returnVal): int*'a) =
 
 let init api =
 
-    let startFEN = "1r4r1/8/8/6r1/7R/8/8/R6R"
+    let startFEN = "r1bq1r2/b1p2p2/p1pp1n1p/4p2k/3PP2B/2P3Q1/PP1N1PPP/R3R1K1 b - - 12 20"
 
     let startFEN = "start"
 
@@ -66,8 +66,8 @@ let update msg (model:Model) =
         model, Cmd.none
 
     | StartGame (Some chessGame, Some whitePlayer, Some blackPlayer) ->
-        let wImage = "/Image/" + ChessPlayer.getPlayerName whitePlayer + ".jpg"
-        let bImage = "/Image/" + ChessPlayer.getPlayerName blackPlayer + ".jpg"
+        let wImage = "/Images/" + ChessPlayer.getPlayerName whitePlayer + ".jpg"
+        let bImage = "/Images/" + ChessPlayer.getPlayerName blackPlayer + ".jpg"
 
         let freshModel, _ = init model.Api
         { freshModel with ChessGame = chessGame
@@ -108,7 +108,7 @@ let update msg (model:Model) =
         else
             playSound "/Sounds/victory.wav"
 
-        { model with SquareStyles = squareStyle }, Cmd.none
+        { model with SquareStyles = squareStyle }, Cmd.OfAsync.either model.Api.CreateTextFile (model.WhitePlayer, model.BlackPlayer, model.ChessGame) CreateTextFile HandleExn |> Cmd.map Internal
 
 
     | ParseMove () when model.MovesList.Head.StartsWith("O") ->
@@ -175,3 +175,6 @@ let update msg (model:Model) =
 
     | HandleExn exn ->
         { model with Exn = Some exn }, exn.Message |> UpdateErrorString |> Internal |> Cmd.ofMsg
+
+    | CreateTextFile _ ->
+        model, Cmd.none

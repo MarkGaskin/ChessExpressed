@@ -25,18 +25,43 @@ type ChessBoardProps =
     | ShowNotation of bool
     | OnDrop of (unit -> unit)
 
-type RenderProps =
-    | Status
-    | StartRecording of (unit -> unit)
-    | StopRecording of (unit -> unit)
-    | MediaBlobUrl of Blob
 
 let inline chessBoard (props : ChessBoardProps list) (elems : ReactElement list) : ReactElement =
     ofImport "default" "chessboardjsx" (keyValueList CaseRules.LowerFirst props) elems
 
-type useMediaRecorderType = Blob -> (string * (unit -> unit) * (unit -> unit) * (unit -> Blob))
+//type RenderProps =
+//    | Status
+//    | StartRecording of (MouseEvent -> unit)
+//    | StopRecording of (MouseEvent -> unit)
+//    | MediaBlobUrl of Blob
 
-let useMediaRecorder : useMediaRecorderType = import "useReactMediaRecorder" "react-media-recorder"
+//type useMediaRecorderResult =
+//    {
+//        status : string
+//        mediaBlob : Blob
+//        stopRecording : unit -> unit
+//        startRecording : unit -> unit
+//    }
+
+//type OnStopFunction = string -> unit 
+
+//type MediaProps =
+//    { audio : bool
+//      video : bool
+//      screen: bool
+//      //blobPropertyBag: obj
+//      onStop: OnStopFunction }
+
+//let onStop urlBlob =
+//    JS.console.log "onStop"
+//    JS.console.log urlBlob
+
+//type MyProps =
+//    { model: Model }
+
+//type useMediaRecorderType = MediaProps -> useMediaRecorderResult
+
+//let useMediaRecorder : useMediaRecorderType = import "useReactMediaRecorder" "react-media-recorder"
 
 
 let darkSquareStyle = createObj ["backgroundColor" ==> "rgba(220, 220, 220)"]
@@ -49,6 +74,7 @@ let lightSquareStyle = createObj ["backgroundColor" ==> "rgb(255, 255, 255)"]
 
 
 //) ()
+
 
 let chessBoardView (model : Model) =
     Container.container [ ] [
@@ -68,27 +94,45 @@ let chessBoardView (model : Model) =
     ]
 
 
-type MediaRecorderProps =
-    | Audio of bool
-    | Video of bool
-    | Render of useMediaRecorderType
+//type MediaRecorderProps =
+//    | Audio of bool
+//    | Video of bool
+//    | Render of (RenderProps[] -> ReactElement)
 
 
-let inline reactMediaRecorder (props : MediaRecorderProps list) (elems : ReactElement list) : ReactElement =
-    ofImport "ReactMediaRecorder" "react-media-recorder" (keyValueList CaseRules.LowerFirst props) elems
+//let inline reactMediaRecorder (props : MediaRecorderProps list) (elems : ReactElement list) : ReactElement =
+//    ofImport "default" "react-media-recorder" (keyValueList CaseRules.LowerFirst props) elems
 
 let containerFieldProps : IHTMLProp list =
-    [ Style [CSSProp.Padding 40; CSSProp.Width 1400; CSSProp.Height 790; CSSProp.Margin "auto"; CSSProp.Display DisplayOptions.Flex; CSSProp.Border "5px solid blue" ] ]
+    [ Style [CSSProp.Padding 40; CSSProp.Width "100%"; CSSProp.Height "100%"
 
+    ; CSSProp.Margin "auto"; CSSProp.Display DisplayOptions.Flex; CSSProp.Border "5px solid blue" ] ]
+
+
+
+
+//let reactMediaRecorderHook =
+//    FunctionComponent.Of (fun (props: MyProps) ->
+//        let result = useMediaRecorder ({video = false; audio = true; screen = true; (*blobPropertyBag = createObj ["type"==>"video/mp4"];*) onStop = onStop })
+//        div[] [
+//            Button.a [
+//                Button.Color IsPrimary
+//                Button.OnClick (fun _ -> JS.console.log "Started recording"; result.startRecording ())
+//            ] [ str "Record" ]
+//            Button.a [
+//                Button.Color IsPrimary
+//                Button.OnClick (fun _ -> JS.console.log "Stopped recording"; result.stopRecording ())
+//            ] [ str "Stop"]
+            
+//        ]
+//    )
 
 let recordGameView (model : Model) (dispatch : Msg -> unit) =
-    //FunctionComponent.Of (fun props -> 
-    //    let (status, startRec, stopRec, mediaBlob ) = useMediaRecorder(Blob.Create props)
-    //reactMediaRecorder [MediaRecorderProps.Audio true; MediaRecorderProps.Video true; MediaRecorderProps.Render ] [
     div containerFieldProps [
         Box.box' [GenericOption.Props [Style [CSSProp.Width 400;
-                                              CSSProp.FontSize 36;
                                               CSSProp.FontWeight "Bold";
+                                              CSSProp.FontFamily "Verdana"
+                                              CSSProp.FontSize 30;
                                               CSSProp.MarginRight -200;
                                               CSSProp.TextAlign TextAlignOptions.Center;
                                               CSSProp.MarginTop -10;
@@ -97,13 +141,14 @@ let recordGameView (model : Model) (dispatch : Msg -> unit) =
                                               CSSProp.Display DisplayOptions.Flex
                                               CSSProp.FlexDirection "column"
                                               CSSProp.Color "White"] ] ] [
-            div [] [str (ChessPlayer.getPlayerName model.BlackPlayer)]
-            div [] [img [ Src model.WhitePlayerImage; HTMLAttr.Height 200; HTMLAttr.Width 200 ] ]
-            div [] [img [ Src model.BlackPlayerImage; HTMLAttr.Height 200; HTMLAttr.Width 200 ] ]
-            div [ Style [CSSProp.MarginTop "auto" ] ] [str (ChessPlayer.getPlayerName model.WhitePlayer)]
+            div [Style [CSSProp.Height 400]] [
+                div [] [str (ChessPlayer.getPlayerName model.BlackPlayer)]
+                div [] [img [ Src model.BlackPlayerImage; HTMLAttr.Height 300; HTMLAttr.Width 300 ] ]
+            ]
+            div [Style [CSSProp.Height 400]] [
+                div [] [img [ Src model.WhitePlayerImage; HTMLAttr.Height 250; HTMLAttr.Width 250; HTMLAttr.MarginHeight 100.0; ] ]
+                div [ Style [CSSProp.MarginTop "auto"; CSSProp.MarginBottom -20 ] ] [str (ChessPlayer.getPlayerName model.WhitePlayer)]
+            ]
         ]
         chessBoardView model
     ]
-
-
-            //) [|createObj ["Video" ==> "true"; "Audio" ==> "true" ]|]

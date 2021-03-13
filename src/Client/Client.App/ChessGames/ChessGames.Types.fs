@@ -17,6 +17,7 @@ type Model =
       SelectedPlayer2Name: string
       ChessGameInput: ChessGame
       ImportDirectory: string
+      ImportSingleDirectory: string
       ErrorString: string
       Exn : exn option }
 
@@ -27,7 +28,10 @@ type EditGameType =
 type InternalMsg =
     | AddBatchGames of string
     | AddedBatchGames of Result<unit, ServerError>
+    | ImportGame of string
+    | ImportedGame of Result<unit, ServerError>
     | EditImportDirectory of string
+    | EditImportSingleDirectory of string
     | AddGame of ChessGame
     | StartGamePressed
     | DeleteGame of ChessGame

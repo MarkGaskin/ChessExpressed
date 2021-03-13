@@ -7,6 +7,7 @@ open LiteDB.FSharp
 open LiteDB
 open System
 open System.IO
+open System.Text
 
 
 type Storage () =
@@ -196,11 +197,11 @@ open TimHanewich.Chess.Pgn
 open System.Text.RegularExpressions
 
 let stripComments (gameString:string) = 
-    Regex.Replace(gameString, @" ?\{.*?\}", String.Empty)
+    Regex.Replace(gameString, @" ?\{[\s\S]*?\}", String.Empty)
     |> fun updatedString ->
-        Regex.Replace(updatedString, @" ?\(.*?\)", String.Empty)
+        Regex.Replace(updatedString, @" ?\([\s\S]*?\)", String.Empty)
     |> fun updatedString ->
-        Regex.Replace(updatedString, @" ?\[.*?\]", String.Empty)
+        Regex.Replace(updatedString, @" ?\[[\s\S]*?\]", String.Empty)
 
 let stripMoveNumbers (gameString:string) = 
     Regex.Replace(gameString, @"\d+\.", String.Empty)
@@ -219,15 +220,25 @@ let parseMoves (gameString: string) =
                                .Replace("\n", " ")
                                .Replace("...", ".")
                                .Replace("*", "")
-                               .Replace("   ", "  ")
-                               .Replace("  ", " ")
     let gameString = gameString |> stripMoveNumbers |> stripResult
+    let gameString = gameString.Replace("   ", "  ")
+                               .Replace("  ", " ")
     gameString.Split(" ")
     |> Array.map (fun (string:string) -> string.Trim())
+    |> Array.filter(fun string -> string |> String.IsNullOrWhiteSpace |> not)
 
 let getDisplayName (pgnParser: PgnParserLite)  =
     pgnParser.White + " vs. " + pgnParser.Black + ", " + pgnParser.Event + "R" + pgnParser.Round + " " + (pgnParser.Date.Year |> string)
-    
+
+let createNotes (gameString: string) =
+    try
+        let idx = 
+            gameString
+            |> fun string -> string.IndexOf("1.")
+
+        gameString.Substring(0,idx)
+    with _ ->
+        ""
 
 let pgnParserToChessGame (pgnParser: PgnParserLite) (gameString: string) =
     { Event = pgnParser.Event |> Some
@@ -246,7 +257,7 @@ let pgnParserToChessGame (pgnParser: PgnParserLite) (gameString: string) =
       HasRecorded = false
       Eco = pgnParser.ECO
       Round = pgnParser.Round |> Some
-      Notes = gameString }
+      Notes = createNotes gameString }
 
 let rec parseAllPgn (pgnSplitter: MassivePgnFileSplitter) =
     try
@@ -299,8 +310,37 @@ let importGames (directoryPath: string) =
         }
     }
 
+let importGame (directoryPath : string) =
+    async {
+        return result{
+            try
+                Directory.GetFiles(directoryPath)
+                |> Array.iter
+                    (fun filePath ->
+                        let gameString = File.ReadAllText(filePath)
+                        let pgnParser = PgnParserLite.ParsePgn(gameString)
+                        let game = pgnParserToChessGame pgnParser gameString
+                
+                        storage.GetChessGames ()
+                        |> List.exists (ChessGame.isRoughlyEqual game)
+                        |> function
+                            | true -> ()
+                            | false ->
+                                storage.AddChessGame game |> ignore
+                        |> ignore)
+                return! Ok ()
+            with
+            | :? System.IO.FileNotFoundException
+            | :? System.IO.DirectoryNotFoundException ->
+                return! Error FileForParsingNotFound
+            | e ->
+                return! Error (FailedToImportGames e)
+        }
+    }
+
 let pgnApi : PGNApi =
-    { ImportFromPath = importGames }
+    { ImportFromPath = importGames
+      ImportGame = importGame }
 
 
 let chessGameApi : ChessGameApi =
@@ -325,6 +365,59 @@ let chessGameApi : ChessGameApi =
                 | Ok false -> return failwith "Failed to update chess game"
                 | Error e -> return failwith e } }
 
+let createShoutout (chessPlayer: ChessPlayer) =
+    "Follow "
+    + ChessPlayer.getPlayerName chessPlayer
+    + ":\n"
+    +
+    if chessPlayer.TwitterHandle |> String.IsNullOrWhiteSpace then
+        ""
+    else
+        "Twitter: " + chessPlayer.TwitterHandle + "\n"
+    +
+    if chessPlayer.YouTubeChannel |> String.IsNullOrWhiteSpace then
+        ""
+    else
+        "YouTube: " + chessPlayer.YouTubeChannel + "\n"
+    +
+    if chessPlayer.TwitchChannel |> String.IsNullOrWhiteSpace then
+        ""
+    else
+        "Twitch: " + chessPlayer.TwitchChannel + "\n"
+
+let selfPromo =
+    "Follow me on Twitter: https://twitter.com/ChessExpressed"
+
+
+let createTextFile ((whitePlayer, blackPlayer, chessGame) : ChessPlayer * ChessPlayer * ChessGame) =
+    async{
+        let filename =
+            ChessPlayer.getPlayerName whitePlayer
+            +
+            " vs. "
+            +
+            ChessPlayer.getPlayerName blackPlayer
+            +
+            " "
+            +
+            (chessGame.Event |> Option.defaultValue "")
+            +
+            DateTime.Now.ToString("yyyy-MM-dd")
+            +
+            ".txt"
+
+        let directory = "D:\ChessVideos\Notes"
+           
+        let filePath = Path.Combine(directory, filename)
+
+        let fileString =
+            [ selfPromo; chessGame.Notes + "\n"; chessGame.GameNotation + "\n"; createShoutout whitePlayer; createShoutout blackPlayer ] 
+
+        File.WriteAllLines(filePath, fileString)
+
+        return Ok ()
+    }
+
 let CEApi =
     { getChessPlayers = chessPlayerApi.getChessPlayers
       addChessPlayer = chessPlayerApi.addChessPlayer
@@ -337,4 +430,6 @@ let CEApi =
       UpdateECOs = ecoApi.UpdateECOs
       GetECOFromID = ecoApi.GetECOFromID
       GetECOFromMoves = ecoApi.GetECOFromMoves
-      ImportFromPath = pgnApi.ImportFromPath }
+      ImportFromPath = pgnApi.ImportFromPath
+      ImportGame = pgnApi.ImportGame
+      CreateTextFile = createTextFile }

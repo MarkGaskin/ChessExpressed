@@ -89,6 +89,7 @@ module ChessPlayer =
     let getPlayerName (chessPlayer: ChessPlayer) =
         if chessPlayer.NickName = "" then chessPlayer.FirstName + " " + chessPlayer.LastName
         else chessPlayer.NickName
+        |> fun string -> string.Trim()
 
     let searchNameStart chessPlayer (string: string): bool =
         match String.IsNullOrWhiteSpace string,
@@ -157,7 +158,8 @@ module Route =
         sprintf "/api/%s/%s" typeName methodName
 
 type PGNApi =
-    { ImportFromPath : string -> Async<Result<unit,ServerError>> }
+    { ImportFromPath : string -> Async<Result<unit,ServerError>>
+      ImportGame: string -> Async<Result<unit, ServerError>> }
 
 type ECOApi =
     {  UpdateECOs : unit -> Async<Result<unit,ServerError>>
@@ -187,4 +189,6 @@ type ICEApi =
       UpdateECOs : unit -> Async<Result<unit,ServerError>>
       GetECOFromID : string -> Async<Result<ECO,ServerError>>
       GetECOFromMoves : string -> Async<Result<ECO,ServerError>>
-      ImportFromPath : string -> Async<Result<unit, ServerError>> }
+      ImportFromPath : string -> Async<Result<unit, ServerError>>
+      ImportGame: string -> Async<Result<unit, ServerError>>
+      CreateTextFile : (ChessPlayer * ChessPlayer * ChessGame) -> Async<Result<unit, ServerError>>}

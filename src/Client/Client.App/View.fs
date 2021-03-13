@@ -23,7 +23,7 @@ let view (model : Model) (dispatch : Msg -> unit) =
                     BackgroundSize "cover"
                 ]
             ]
-        ] [ Hero.head [ ]
+        ] [ Hero.head []
                 [ Tabs.tabs [ Tabs.IsBoxed
                               Tabs.IsCentered
                               Tabs.IsToggle ]

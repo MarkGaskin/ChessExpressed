@@ -32,6 +32,7 @@ type InternalMsg =
     | ParseMove of unit
     | ParseCastle of unit
     | UpdateSquareStyles of obj
+    | CreateTextFile of Result<unit, ServerError>
 
 
 type ExternalMsg =

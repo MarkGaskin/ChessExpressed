@@ -20,7 +20,7 @@ let containerFieldProps : IHTMLProp list =
 let addGameView (model : Model) (dispatch : Msg -> unit) =
     div containerFieldProps [
         div [] [
-            Box.box' [GenericOption.Props [Style [CSSProp.Width 400; CSSProp.Height 850; CSSProp.MarginRight 100] ] ] [
+            Box.box' [GenericOption.Props [Style [CSSProp.Width 400; CSSProp.Height 850; CSSProp.MarginRight 100; CSSProp.MarginTop -100;] ] ] [
                 Field.div [] [
                     Dropdown.dropdown[ Dropdown.IsHoverable ] [
                         Dropdown.trigger [] [
@@ -146,7 +146,7 @@ let addGameView (model : Model) (dispatch : Msg -> unit) =
                     ]     
                 ]
         
-                Box.box' [GenericOption.Props [Style [CSSProp.Width 400; CSSProp.MarginTop 100] ] ] [
+                Box.box' [GenericOption.Props [Style [CSSProp.Width 400; CSSProp.MarginTop 30; CSSProp.MarginLeft -20] ] ] [
                     Field.div [ Field.IsHorizontal; Field.Props [Style [ ] ] ] [
                         Control.p [ Control.IsExpanded ] [
                             Input.text [
@@ -159,7 +159,25 @@ let addGameView (model : Model) (dispatch : Msg -> unit) =
                             Button.a [
                                 Button.Color IsPrimary
                                 Button.OnClick (fun _ -> dispatch (AddBatchGames model.ImportDirectory |> Internal))
-                            ] [ str "Import" ]
+                            ] [ str "Import Batch" ]
+                        ]
+                    ]
+                ]
+
+                Box.box' [GenericOption.Props [Style [CSSProp.Width 400; CSSProp.MarginTop 30; CSSProp.MarginLeft -20] ] ] [
+                    Field.div [ Field.IsHorizontal; Field.Props [Style [ ] ] ] [
+                        Control.p [ Control.IsExpanded ] [
+                            Input.text [
+                                Input.Value (model.ImportSingleDirectory)
+                                Input.Placeholder "Import Single File"
+                                Input.OnChange (fun x -> EditImportSingleDirectory x.Value |> Internal |> dispatch)
+                            ]
+                        ]
+                        Control.p [ Control.Props [Style [ CSSProp.MarginLeft 40 ] ]  ] [
+                            Button.a [
+                                Button.Color IsPrimary
+                                Button.OnClick (fun _ -> dispatch (ImportGame model.ImportSingleDirectory |> Internal))
+                            ] [ str "Import Single" ]
                         ]
                     ]
                 ]

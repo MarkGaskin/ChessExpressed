@@ -34,6 +34,7 @@ let init api =
       ChessGameInput = ChessGame.defaultGame
       ErrorString = ""
       ImportDirectory = "C:\\PGN"
+      ImportSingleDirectory = "C:\\PGN_Single"
       Exn = None }, Cmd.OfAsync.perform api.getChessGames () GotChessGames |> Cmd.map Internal
 
 let update msg (model:Model) =
@@ -65,6 +66,22 @@ let update msg (model:Model) =
 
     | EditImportDirectory importDirectory ->
         { model with ImportDirectory = importDirectory }, Cmd.none
+
+    | EditImportSingleDirectory importPath ->
+        { model with ImportSingleDirectory = importPath }, Cmd.none
+
+    | ImportGame importFilePath ->
+        model, [ Cmd.OfAsync.either model.Api.ImportGame importFilePath ImportedGame HandleExn |> Cmd.map Internal
+                 ImportedGames |> External |> Cmd.ofMsg ]
+               |> Cmd.batch
+
+    | ImportedGame (Ok ()) ->
+        window.alert "Successfully imported games"
+        model, Cmd.OfAsync.perform model.Api.getChessGames () GotChessGames |> Cmd.map Internal
+
+    | ImportedGame _ ->
+        window.alert "Error importing games"
+        model, Cmd.none
 
     | StartGamePressed ->
         let findPlayerByIdx idx =

@@ -191,4 +191,5 @@ type ICEApi =
       GetECOFromMoves : string -> Async<Result<ECO,ServerError>>
       ImportFromPath : string -> Async<Result<unit, ServerError>>
       ImportGame: string -> Async<Result<unit, ServerError>>
-      CreateTextFile : (ChessPlayer * ChessPlayer * ChessGame) -> Async<Result<unit, ServerError>>}
+      CreateTextFile : (ChessPlayer * ChessPlayer * ChessGame) -> Async<Result<unit, ServerError>>
+      CreateJSFile : (string[] * obj[]) -> Async<Result<unit, ServerError>>}

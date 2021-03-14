@@ -1,4 +1,4 @@
-module Client.App.ChessBoard.State
+module Client.App.ChessBoard.PrepareGameState
 
 open Shared
 open Shared.CEError
@@ -10,7 +10,7 @@ open Browser.Types
 open Browser.Blob
 open Fable.Core
 open Fable.React.Props
-open Types
+open PrepareGameTypes
 open Elmish
 open ChessPieces
 open SquareCoverage
@@ -19,13 +19,6 @@ open FEN
 open ParseMove
 open System
 
-/// Uses Fable's Emit to call JavaScript directly and play sounds
-[<Emit("(new Audio($0)).play();")>]
-let playSound (fileName: string) = jsNative
-
-let delayMsg ((count, returnVal): int*'a) =
-    async { do! Async.Sleep count
-            return returnVal }
 
 let init api =
 
@@ -43,15 +36,14 @@ let init api =
     { Api = api
       FENPosition = startFEN
       AllPieces = pieces
-      PreviousPieceCount = pieces.Length
+      GameIndex = 0
       ChessGame = ChessGame.defaultGame
       WhitePlayer = ChessPlayer.defaultPlayer
-      WhitePlayerImage = ""
       BlackPlayer = ChessPlayer.defaultPlayer
-      BlackPlayerImage = ""
       WhiteToMove = true
       MovesList = List.empty
-      SquareStyles = squareStyle
+      SquareStyles = [|squareStyle|]
+      FENArray = [|startFEN|]
       ErrorString = ""
       Exn = None }, Cmd.none // Cmd.OfAsync.either api.UpdateECOs () UpdatedEcos HandleExn
 
@@ -66,55 +58,42 @@ let update msg (model:Model) =
         model, Cmd.none
 
     | StartGame (Some chessGame, Some whitePlayer, Some blackPlayer) ->
-        let wImage = "/Images/" + ChessPlayer.getPlayerName whitePlayer + ".jpg"
-        let bImage = "/Images/" + ChessPlayer.getPlayerName blackPlayer + ".jpg"
-
         let freshModel, _ = init model.Api
         { freshModel with ChessGame = chessGame
                           WhitePlayer = whitePlayer
-                          WhitePlayerImage = wImage
                           BlackPlayer = blackPlayer
-                          BlackPlayerImage = bImage
-                          MovesList = chessGame.MovesList |> List.ofArray }, StartRecording |> Internal |> Cmd.ofMsg
+                          MovesList = chessGame.MovesList |> List.ofArray }, ParseMove |> Internal |> Cmd.ofMsg
 
     | StartGame _ ->
         window.alert "Received invalid parameter data in StartGame. Unable to start the game"
         model, Cmd.none
 
-    | StartRecording ->
-    //    let wSquareCoverage, bSquareCoverage = getSquareCoverage model.AllPieces
-        
-    //    let squareStyle = createSquareStyleObject wSquareCoverage bSquareCoverage
-        
-        model, [ Cmd.OfAsync.perform delayMsg (moveDuration, ()) ParseMove |> Cmd.map Internal ]
-               |> Cmd.batch
-
-    | ParseMove () when model.MovesList.IsEmpty || model.MovesList.Head |> String.IsNullOrWhiteSpace ->
+    | ParseMove when ((model.MovesList.IsEmpty || model.MovesList.Head |> String.IsNullOrWhiteSpace) && model.ChessGame.Result <> Draw) ->
         let squareStyle =
             match model.ChessGame.Result with
-            | Draw ->
-                model.SquareStyles
             | WhiteWin ->
                 model.AllPieces
                 |> List.find (fun piece -> piece.Color = Black && piece.PieceType = King)
                 |> createGameOverStyle
-            | BlackWin ->
+            | _ ->
                 model.AllPieces
                 |> List.find (fun piece -> piece.Color = White && piece.PieceType = King)
                 |> createGameOverStyle
 
-        if model.ChessGame.Result = Draw then
-            playSound "/Sounds/draw.wav"
-        else
-            playSound "/Sounds/victory.wav"
+        model, [ squareStyle |> UpdateSquareStyles |> Internal |> Cmd.ofMsg
+                 GameComplete |> Internal |> Cmd.ofMsg ]
+               |> Cmd.batch
 
-        { model with SquareStyles = squareStyle }, Cmd.OfAsync.either model.Api.CreateTextFile (model.WhitePlayer, model.BlackPlayer, model.ChessGame) CreateTextFile HandleExn |> Cmd.map Internal
+    | GameComplete ->
+        model, [ Cmd.OfAsync.either model.Api.CreateTextFile (model.WhitePlayer, model.BlackPlayer, model.ChessGame) CreateTextFile HandleExn |> Cmd.map Internal
+                 Cmd.OfAsync.either model.Api.CreateJSFile (model.FENArray, model.SquareStyles) CreateTextFile HandleExn |> Cmd.map Internal ]
+               |> Cmd.batch
 
 
-    | ParseMove () when model.MovesList.Head.StartsWith("O") ->
-        model, Cmd.OfAsync.perform delayMsg (moveDuration/2, ()) ParseCastle |> Cmd.map Internal
+    | ParseMove when model.MovesList.Head.StartsWith("O") ->
+        model, ParseCastle |> Internal |> Cmd.ofMsg
 
-    | ParseCastle () ->
+    | ParseCastle ->
         let move = model.MovesList.Head
         
         let newPieceList =
@@ -130,14 +109,13 @@ let update msg (model:Model) =
         { model with MovesList = model.MovesList.Tail
                      AllPieces = newPieceList
                      FENPosition = createFen newPieceList (if model.WhiteToMove then White else Black)
-                     WhiteToMove = model.WhiteToMove |> not
-                     SquareStyles = squareStyle },
+                     WhiteToMove = model.WhiteToMove |> not },
             [ squareStyle |> UpdateSquareStyles |> Internal |> Cmd.ofMsg
-              Cmd.OfAsync.perform delayMsg (moveDuration/2, ()) ParseMove |> Cmd.map Internal ]
+              ParseMove |> Internal |> Cmd.ofMsg ]
             |> Cmd.batch
                 
 
-    | ParseMove () ->
+    | ParseMove ->
         let move = model.MovesList.Head
 
         let newPieceList =
@@ -154,20 +132,16 @@ let update msg (model:Model) =
                      AllPieces = newPieceList
                      FENPosition = createFen newPieceList (if model.WhiteToMove then White else Black)
                      WhiteToMove = model.WhiteToMove |> not },
-            [ Cmd.OfAsync.perform delayMsg (transitionDuration, squareStyle) UpdateSquareStyles |> Cmd.map Internal 
-              Cmd.OfAsync.perform delayMsg (moveDuration, ()) ParseMove |> Cmd.map Internal ]
+            [ squareStyle |> UpdateSquareStyles |> Internal |> Cmd.ofMsg
+              ParseMove |> Internal |> Cmd.ofMsg ]
             |> Cmd.batch
         
         
 
-    | UpdateSquareStyles squareStyles ->
-        if model.AllPieces.Length < model.PreviousPieceCount then
-            playSound "/Sounds/capture.mp3"
-        else
-            playSound "/Sounds/move.mp3"
-
-        { model with SquareStyles = squareStyles
-                     PreviousPieceCount = model.AllPieces.Length }, Cmd.none
+    | UpdateSquareStyles squareStyle ->
+        let newFEN = createFen model.AllPieces (if model.WhiteToMove then White else Black)
+        { model with SquareStyles = Array.append model.SquareStyles [|squareStyle|]
+                     FENArray = Array.append model.FENArray [|newFEN|] }, Cmd.none
 
     | UpdateErrorString string ->
         JS.console.error string
@@ -178,3 +152,18 @@ let update msg (model:Model) =
 
     | CreateTextFile _ ->
         model, Cmd.none
+
+    | MoveForward ->
+        let newIdx =
+            max 
+                (min (model.GameIndex + 1) (model.ChessGame.MovesList.Length - 1))
+                0
+        { model with GameIndex = model.GameIndex + 1 }, Cmd.none
+
+    | MoveBackward ->
+        let newIdx =
+            max 
+                (min (model.GameIndex - 1) (model.ChessGame.MovesList.Length - 1))
+                0
+
+        { model with GameIndex = newIdx }, Cmd.none

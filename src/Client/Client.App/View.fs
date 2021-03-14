@@ -8,7 +8,8 @@ open Fable.Core
 open Fable.Core.JsInterop
 open Fulma
 open Browser.Blob
-open ChessBoard.View
+open ChessBoard.RecordGameView
+open ChessBoard.PrepareGameView
 open ChessPlayers.View
 open ChessGames.View
 open Elmish
@@ -35,12 +36,17 @@ let view (model : Model) (dispatch : Msg -> unit) =
                                    Tabs.Tab.Props [ OnClick ( fun _ -> SetTab TabsType.AddGame |> dispatch) ] ]
                           [ a [ ]
                               [ str "Add Game"] ]
+                        Tabs.tab [ Tabs.Tab.IsActive (model.ActiveTab = TabsType.PrepareGame);
+                                   Tabs.Tab.Props [ OnClick ( fun _ -> SetTab TabsType.PrepareGame |> dispatch) ] ]
+                          [ a [ ]
+                              [ str "Prepare Game"] ]
                         Tabs.tab [ Tabs.Tab.IsActive (model.ActiveTab = TabsType.RecordGame);
                                    Tabs.Tab.Props [ OnClick ( fun _ -> SetTab TabsType.RecordGame |> dispatch) ]  ]
                           [ a [ ]
                               [ str "Record Game" ] ] ] ]
             Hero.body [ ] [ match model.ActiveTab with
-                            | RecordGame -> recordGameView model.ChessBoardModel (ChessBoardMsg >> dispatch)
+                            | RecordGame -> recordGameView model.RecordModel (RecordMsg >> dispatch)
+                            | PrepareGame -> prepareGameView model.PrepareModel (PrepareMsg >> dispatch)
                             | AddGame -> addGameView model.ChessGamesModel (ChessGamesMsg >> dispatch)
                             | AddPlayer -> addPlayerView model.ChessPlayersModel (ChessPlayersMsg >> dispatch)
                           ]

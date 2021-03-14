@@ -1,4 +1,5 @@
-module Client.App.ChessBoard.View
+module Client.App.ChessBoard.RecordGameView
+
 
 open Shared
 open Fable.Remoting.Client
@@ -11,7 +12,7 @@ open Browser
 open Browser.Types
 open Browser.Blob
 open Fable.Core
-open Types
+open RecordGameTypes
 open ChessPieces
 open SquareStyles
 
@@ -104,9 +105,7 @@ let chessBoardView (model : Model) =
 //    ofImport "default" "react-media-recorder" (keyValueList CaseRules.LowerFirst props) elems
 
 let containerFieldProps : IHTMLProp list =
-    [ Style [CSSProp.Padding 40; CSSProp.Width "100%"; CSSProp.Height "100%"
-
-    ; CSSProp.Margin "auto"; CSSProp.Display DisplayOptions.Flex; CSSProp.Border "5px solid blue" ] ]
+    [ Style [CSSProp.Padding 40; CSSProp.Width "100%"; CSSProp.Height "100%"; CSSProp.Margin "auto"; CSSProp.Display DisplayOptions.Flex; CSSProp.Border "5px solid blue" ] ]
 
 
 

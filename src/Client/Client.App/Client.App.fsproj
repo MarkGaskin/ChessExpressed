@@ -17,9 +17,12 @@
         <Compile Include="ChessBoard\ParseMove.fs" />
         <Compile Include="ChessBoard\SquareStyles.fs" />
         <Compile Include="ChessBoard\FEN.fs" />
-        <Compile Include="ChessBoard\ChessBoard.Types.fs" />
-        <Compile Include="ChessBoard\ChessBoard.State.fs" />
-        <Compile Include="ChessBoard\ChessBoard.View.fs" />
+        <Compile Include="ChessBoard\PrepareGame\PrepareGame.Types.fs" />
+        <Compile Include="ChessBoard\PrepareGame\PrepareGame.State.fs" />
+        <Compile Include="ChessBoard\PrepareGame\PrepareGame.View.fs" />
+        <Compile Include="ChessBoard\RecordGame\RecordGame.Types.fs" />
+        <Compile Include="ChessBoard\RecordGame\RecordGame.State.fs" />
+        <Compile Include="ChessBoard\RecordGame\RecordGame.View.fs" />
         <None Include="index.html" />
         <None Include="paket.references" />
         <Compile Include="Types.fs" />

@@ -12,16 +12,19 @@ open Shared
 let init (api: ICEApi) (): Model * Cmd<Msg> =
     JS.console.log "State.init"
 
-    let cBMdl, cBCmd = ChessBoard.State.init api
+    let rMdl, rCmd = ChessBoard.RecordGameState.init api
+    let pMdl, pCmd = ChessBoard.PrepareGameState.init api
     let cPMdl, cPCmd = ChessPlayers.State.init api
     let cGMdl, cGCmd = ChessGames.State.init api
 
     { Api = api
-      ChessBoardModel = cBMdl
+      RecordModel = rMdl
+      PrepareModel = pMdl
       ChessPlayersModel = cPMdl
       ChessGamesModel = cGMdl
       ActiveTab = TabsType.AddPlayer },
-        [ cBCmd |> Cmd.map ChessBoardMsg
+        [ rCmd |> Cmd.map RecordMsg
+          pCmd |> Cmd.map PrepareMsg
           cPCmd |> Cmd.map ChessPlayersMsg
           cGCmd |> Cmd.map ChessGamesMsg ]
         |> Cmd.batch
@@ -40,12 +43,15 @@ let update (msg: Msg) (model: Model): Model * Cmd<Msg> =
     | SetTab tabType ->
         { model with ActiveTab = tabType }, Cmd.none
 
-    | ChessBoardMsg (ChessBoard.Types.Internal msg) ->
-        let cMdl, cCmd = ChessBoard.State.update msg model.ChessBoardModel
-        { model with ChessBoardModel = cMdl }, cCmd |> Cmd.map ChessBoardMsg
+    | RecordMsg (ChessBoard.RecordGameTypes.Internal msg) ->
+        let cMdl, cCmd = ChessBoard.RecordGameState.update msg model.RecordModel
+        { model with RecordModel = cMdl }, cCmd |> Cmd.map RecordMsg
 
-    | ChessBoardMsg (ChessBoard.Types.External (ChessBoard.Types.GameRecorded chessGame)) ->
-        // Update hasRecorded in db
+    | PrepareMsg (ChessBoard.PrepareGameTypes.Internal msg) ->
+        let pMdl, pCmd = ChessBoard.PrepareGameState.update msg model.PrepareModel
+        { model with PrepareModel = pMdl }, pCmd |> Cmd.map PrepareMsg
+
+    | RecordMsg (ChessBoard.RecordGameTypes.External (ChessBoard.RecordGameTypes.GameRecorded chessGame)) ->
         model, Cmd.none
 
     | ChessPlayersMsg (ChessPlayers.Types.Internal msg) ->
@@ -61,8 +67,8 @@ let update (msg: Msg) (model: Model): Model * Cmd<Msg> =
         { model with ChessPlayersModel = cMdl }, cCmd |> Cmd.map ChessPlayersMsg
 
     | ChessGamesMsg (ChessGames.Types.External (ChessGames.Types.ExternalMsg.StartGame args)) ->
-        let cMdl, cCmd = ChessBoard.State.update (ChessBoard.Types.StartGame args) model.ChessBoardModel
-        { model with ChessBoardModel = cMdl; ActiveTab = RecordGame }, cCmd |> Cmd.map ChessBoardMsg
+        let cMdl, cCmd = ChessBoard.PrepareGameState.update (ChessBoard.PrepareGameTypes.StartGame args) model.PrepareModel
+        { model with PrepareModel = cMdl; ActiveTab = PrepareGame }, cCmd |> Cmd.map PrepareMsg
 
     | ChessPlayersMsg (ChessPlayers.Types.External (ChessPlayers.Types.UpdatedPlayers updatedPlayers)) ->
         let cMdl, cCmd = ChessGames.State.update (ChessGames.Types.GotChessPlayers updatedPlayers) model.ChessGamesModel

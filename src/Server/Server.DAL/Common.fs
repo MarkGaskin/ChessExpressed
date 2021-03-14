@@ -8,6 +8,7 @@ open LiteDB
 open System
 open System.IO
 open System.Text
+open Newtonsoft.Json
 
 
 type Storage () =
@@ -418,6 +419,31 @@ let createTextFile ((whitePlayer, blackPlayer, chessGame) : ChessPlayer * ChessP
         return Ok ()
     }
 
+type JSONWrite =
+    { FENArray: string[]
+      SquareStylesArray: obj[] }
+
+let createJSFile ((fenArray, squareStyles) : string[] * obj[]) =
+    async{
+        let filename = "game.js"
+
+        let directory = "C:\Users\markr\git-repos\RemotionChess\pgn"
+           
+        let filePath = Path.Combine(directory, filename)
+
+        let header = "const text ="
+        let footer = "export default text;"
+
+        let fileString =
+            "`" + JsonConvert.SerializeObject { FENArray = fenArray; SquareStylesArray = squareStyles } + "`"
+
+        File.WriteAllLines(filePath, [header; fileString; footer])
+
+        return Ok ()
+    }
+
+
+
 let CEApi =
     { getChessPlayers = chessPlayerApi.getChessPlayers
       addChessPlayer = chessPlayerApi.addChessPlayer
@@ -432,4 +458,5 @@ let CEApi =
       GetECOFromMoves = ecoApi.GetECOFromMoves
       ImportFromPath = pgnApi.ImportFromPath
       ImportGame = pgnApi.ImportGame
-      CreateTextFile = createTextFile }
+      CreateTextFile = createTextFile
+      CreateJSFile = createJSFile }

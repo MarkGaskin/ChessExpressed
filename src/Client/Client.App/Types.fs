@@ -27,11 +27,13 @@ type IMediaProps =
 type TabsType =
     | AddPlayer
     | AddGame
+    | PrepareGame
     | RecordGame
 
 type Model =
     { Api: ICEApi
-      ChessBoardModel: ChessBoard.Types.Model
+      RecordModel: ChessBoard.RecordGameTypes.Model
+      PrepareModel: ChessBoard.PrepareGameTypes.Model
       ChessPlayersModel: ChessPlayers.Types.Model
       ChessGamesModel: ChessGames.Types.Model
       ActiveTab: TabsType
@@ -40,6 +42,7 @@ type Model =
 type Msg =
     | StartRecording of (unit -> unit)
     | SetTab of TabsType
-    | ChessBoardMsg of ChessBoard.Types.Msg
+    | RecordMsg of ChessBoard.RecordGameTypes.Msg
+    | PrepareMsg of ChessBoard.PrepareGameTypes.Msg
     | ChessPlayersMsg of ChessPlayers.Types.Msg
     | ChessGamesMsg of ChessGames.Types.Msg

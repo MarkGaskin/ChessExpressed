@@ -387,7 +387,12 @@ let createShoutout (chessPlayer: ChessPlayer) =
         "Twitch: " + chessPlayer.TwitchChannel + "\n"
 
 let selfPromo =
-    "Follow me on Twitter: https://twitter.com/ChessExpressed"
+    " The squares are highlighted based on the number of attacking vs defending pieces that can protect the square. A darker red square implies a greater number of white pieces are protecting that square. Contested squares are split 50/50 and uncontested squares remain un-highlighted.
+
+    Follow me on Twitter: https://twitter.com/ChessExpressed"
+
+let hashtags =
+    "#chess"
 
 
 let createTextFile ((whitePlayer, blackPlayer, chessGame) : ChessPlayer * ChessPlayer * ChessGame) =
@@ -407,12 +412,18 @@ let createTextFile ((whitePlayer, blackPlayer, chessGame) : ChessPlayer * ChessP
             +
             ".txt"
 
-        let directory = "D:\ChessVideos\Notes"
+        let directory = "D:\ChessVideos\\"
+
+        let newDirectoryPath =
+            ChessPlayer.getPlayerName whitePlayer + " - " + ChessPlayer.getPlayerName blackPlayer + " - " + DateTime.Now.ToString("MM-dd")
+            |> fun newDirectory -> Path.Combine(directory, newDirectory)
+
+        Directory.CreateDirectory newDirectoryPath |> ignore
            
-        let filePath = Path.Combine(directory, filename)
+        let filePath = Path.Combine(newDirectoryPath, filename)
 
         let fileString =
-            [ selfPromo; chessGame.Notes + "\n"; chessGame.GameNotation + "\n"; createShoutout whitePlayer; createShoutout blackPlayer ] 
+            [ selfPromo; chessGame.Notes + "\n"; chessGame.GameNotation + "\n"; createShoutout whitePlayer; createShoutout blackPlayer; hashtags ] 
 
         File.WriteAllLines(filePath, fileString)
 

@@ -22,8 +22,14 @@ let getPureSquareColor pieceColor count =
 let getContestedSquareColor whiteCount blackCount =
     let wString = getPureSquareColor White whiteCount
     let bString = getPureSquareColor Black blackCount
-    //"linear-gradient(" + bString + ", " + wString + ", 80%)"
-    "linear-gradient(" + bString + "20%, " + wString + " 80%, " + wString + " 80%)"
+
+    let wPercent = (blackCount - whiteCount) * 10 + 60
+    let bPercent = wPercent - 20
+
+    let wPercentString = sprintf "%i, " wPercent
+    let bPercentString = sprintf "%i, " bPercent
+
+    "linear-gradient(" + bString + bPercentString + wString + wPercentString + wString + wPercentString + ")"
 
 let createSquareStyleObject (wSquareCoverage: Square list) (bSquareCoverage: Square list) =
 

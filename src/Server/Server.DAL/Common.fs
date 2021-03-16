@@ -421,9 +421,12 @@ let createTextFile ((whitePlayer, blackPlayer, chessGame) : ChessPlayer * ChessP
 
 type JSONWrite =
     { FENArray: string[]
-      SquareStylesArray: obj[] }
+      SquareStylesArray: obj[]
+      WhitePlayerName: string
+      BlackPlayerName: string
+      CastleMoveNumbers: int[] }
 
-let createJSFile ((fenArray, squareStyles) : string[] * obj[]) =
+let createJSFile ((fenArray, squareStyles, whitePlayerName, blackPlayerName, castleMoveNumbers) : string[] * obj[] * string * string * int[]) =
     async{
         let filename = "game.js"
 
@@ -435,7 +438,11 @@ let createJSFile ((fenArray, squareStyles) : string[] * obj[]) =
         let footer = "export default text;"
 
         let fileString =
-            "`" + JsonConvert.SerializeObject { FENArray = fenArray; SquareStylesArray = squareStyles } + "`"
+            "`" + JsonConvert.SerializeObject { FENArray = fenArray;
+                                                SquareStylesArray = squareStyles;
+                                                WhitePlayerName = whitePlayerName;
+                                                BlackPlayerName = blackPlayerName;
+                                                CastleMoveNumbers = castleMoveNumbers } + "`"
 
         File.WriteAllLines(filePath, [header; fileString; footer])
 

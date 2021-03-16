@@ -15,6 +15,7 @@ type Model =
       ChessGame: ChessGame
       WhitePlayer : ChessPlayer
       BlackPlayer : ChessPlayer
+      CastleMoveNumbers: int[]
       WhiteToMove: bool
       MovesList: string list
       ErrorString: string

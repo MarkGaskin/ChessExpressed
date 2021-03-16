@@ -125,6 +125,7 @@ let getPieceCoverage (piece:Piece) allPieces =
                     |> List.map
                     (fun fileDelta ->
                         [-1..1]
+                        |> List.filter(fun rankDelta -> rankDelta <> 0 || fileDelta <> 0)
                         |> List.map
                             (fun rankDelta -> piece.Square + (fileDelta, rankDelta)))
                     |> List.concat

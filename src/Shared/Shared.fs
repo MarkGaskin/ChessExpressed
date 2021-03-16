@@ -192,4 +192,4 @@ type ICEApi =
       ImportFromPath : string -> Async<Result<unit, ServerError>>
       ImportGame: string -> Async<Result<unit, ServerError>>
       CreateTextFile : (ChessPlayer * ChessPlayer * ChessGame) -> Async<Result<unit, ServerError>>
-      CreateJSFile : (string[] * obj[]) -> Async<Result<unit, ServerError>>}
+      CreateJSFile : (string[] * obj[] * string * string * int[]) -> Async<Result<unit, ServerError>>}

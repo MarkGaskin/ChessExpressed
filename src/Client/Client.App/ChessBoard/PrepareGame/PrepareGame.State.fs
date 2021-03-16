@@ -40,6 +40,7 @@ let init api =
       ChessGame = ChessGame.defaultGame
       WhitePlayer = ChessPlayer.defaultPlayer
       BlackPlayer = ChessPlayer.defaultPlayer
+      CastleMoveNumbers = [||]
       WhiteToMove = true
       MovesList = List.empty
       SquareStyles = [|squareStyle|]
@@ -68,17 +69,19 @@ let update msg (model:Model) =
         window.alert "Received invalid parameter data in StartGame. Unable to start the game"
         model, Cmd.none
 
-    | ParseMove when ((model.MovesList.IsEmpty || model.MovesList.Head |> String.IsNullOrWhiteSpace) && model.ChessGame.Result <> Draw) ->
+    | ParseMove when ((model.MovesList.IsEmpty || model.MovesList.Head |> String.IsNullOrWhiteSpace)) ->
         let squareStyle =
             match model.ChessGame.Result with
             | WhiteWin ->
                 model.AllPieces
                 |> List.find (fun piece -> piece.Color = Black && piece.PieceType = King)
                 |> createGameOverStyle
-            | _ ->
+            | BlackWin ->
                 model.AllPieces
                 |> List.find (fun piece -> piece.Color = White && piece.PieceType = King)
                 |> createGameOverStyle
+            | Draw ->
+                model.SquareStyles.[model.SquareStyles.Length-1]
 
         model, [ squareStyle |> UpdateSquareStyles |> Internal |> Cmd.ofMsg
                  GameComplete |> Internal |> Cmd.ofMsg ]
@@ -86,7 +89,9 @@ let update msg (model:Model) =
 
     | GameComplete ->
         model, [ Cmd.OfAsync.either model.Api.CreateTextFile (model.WhitePlayer, model.BlackPlayer, model.ChessGame) CreateTextFile HandleExn |> Cmd.map Internal
-                 Cmd.OfAsync.either model.Api.CreateJSFile (model.FENArray, model.SquareStyles) CreateTextFile HandleExn |> Cmd.map Internal ]
+                 Cmd.OfAsync.either model.Api.CreateJSFile
+                    (model.FENArray, model.SquareStyles, ChessPlayer.getPlayerName model.WhitePlayer, ChessPlayer.getPlayerName model.BlackPlayer, model.CastleMoveNumbers)
+                    CreateTextFile HandleExn |> Cmd.map Internal ]
                |> Cmd.batch
 
 
@@ -95,6 +100,8 @@ let update msg (model:Model) =
 
     | ParseCastle ->
         let move = model.MovesList.Head
+
+        let moveNumber = model.ChessGame.MovesList.Length - model.MovesList.Length
         
         let newPieceList =
             if model.WhiteToMove then
@@ -108,6 +115,7 @@ let update msg (model:Model) =
         
         { model with MovesList = model.MovesList.Tail
                      AllPieces = newPieceList
+                     CastleMoveNumbers = Array.append model.CastleMoveNumbers [|moveNumber|]
                      FENPosition = createFen newPieceList (if model.WhiteToMove then White else Black)
                      WhiteToMove = model.WhiteToMove |> not },
             [ squareStyle |> UpdateSquareStyles |> Internal |> Cmd.ofMsg

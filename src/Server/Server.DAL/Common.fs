@@ -232,14 +232,7 @@ let getDisplayName (pgnParser: PgnParserLite)  =
     pgnParser.White + " vs. " + pgnParser.Black + ", " + pgnParser.Event + "R" + pgnParser.Round + " " + (pgnParser.Date.Year |> string)
 
 let createNotes (gameString: string) =
-    try
-        let idx = 
-            gameString
-            |> fun string -> string.IndexOf("1.")
-
-        gameString.Substring(0,idx)
-    with _ ->
-        ""
+    gameString
 
 let pgnParserToChessGame (pgnParser: PgnParserLite) (gameString: string) =
     { Event = pgnParser.Event |> Some
@@ -423,7 +416,7 @@ let createTextFile ((whitePlayer, blackPlayer, chessGame) : ChessPlayer * ChessP
         let filePath = Path.Combine(newDirectoryPath, filename)
 
         let fileString =
-            [ selfPromo; chessGame.Notes + "\n"; chessGame.GameNotation + "\n"; createShoutout whitePlayer; createShoutout blackPlayer; hashtags ] 
+            [ selfPromo; createShoutout whitePlayer; createShoutout blackPlayer; hashtags; chessGame.Notes + "\n" ] 
 
         File.WriteAllLines(filePath, fileString)
 

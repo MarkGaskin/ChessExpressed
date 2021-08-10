@@ -24,11 +24,12 @@ type PieceColor =
 type Piece =
     { PieceType : PieceType
       Square : Square
-      Color : PieceColor }
+      Color : PieceColor
+      IsPinned: bool }
 
 module Piece =
     let create pieceType color square =
-        { PieceType = pieceType; Square = square; Color = color }
+        { PieceType = pieceType; Square = square; Color = color; IsPinned = false }
 
     let createMany pieceType color squares =
         squares
@@ -65,7 +66,7 @@ module Piece =
         | King, Black -> 'k'
 
     let fromChar char square =
-        let piece = {PieceType = Pawn; Color = (if Char.IsUpper char then White else Black); Square = square }
+        let piece = {PieceType = Pawn; Color = (if Char.IsUpper char then White else Black); Square = square; IsPinned = false }
         match Char.ToUpper char with
         | 'B' -> { piece with PieceType = Bishop }
         | 'N' -> { piece with PieceType = Knight }

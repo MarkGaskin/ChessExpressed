@@ -125,9 +125,9 @@ let getPieceCoverage (piece:Piece) allPieces =
                     |> List.map
                     (fun fileDelta ->
                         [-1..1]
-                        |> List.filter(fun rankDelta -> rankDelta <> 0 || fileDelta <> 0)
                         |> List.map
-                            (fun rankDelta -> piece.Square + (fileDelta, rankDelta)))
+                            (fun rankDelta -> piece.Square + (fileDelta, rankDelta))
+                        |> List.filter(fun square -> square <> piece.Square))
                     |> List.concat
                     |> List.filter Square.isValid
     | Bishop, _ -> getBishopCoveredSquares piece allPieces
@@ -137,17 +137,106 @@ let getPieceCoverage (piece:Piece) allPieces =
     | Rook, _ -> getRookCoveredSquares piece allPieces
     | Queen, _ -> getQueenCoveredSquares piece allPieces
 
-
-let getSquareCoverage allPieces =
+let getSquareCoverageByColor color allPieces =
     allPieces
-    |> List.filter(fun piece -> piece.Color = White)
+    |> List.filter(fun piece -> piece.Color = color && piece.IsPinned |> not)
     |> List.map (fun piece ->
         getPieceCoverage piece allPieces)
-    |> List.concat ,
+    |> List.concat 
+
+let getSquareCoverage allPieces =
+    getSquareCoverageByColor White allPieces,
+        getSquareCoverageByColor Black allPieces
+
+
+let rec findAllPiecesInDirection king allPieces direction =
+    let newSquare = king.Square + direction
+    match newSquare |> Square.isValid,
+          allPieces
+          |> List.tryFind
+              (fun piece -> piece.Square = newSquare) with
+    | false, _ -> []
+    | _, Some piece ->
+        List.append [piece] (findAllPiecesInDirection {king with Square = newSquare} allPieces  direction)
+    | _, None -> 
+        List.append [] (findAllPiecesInDirection {king with Square = newSquare} allPieces  direction)
+
+let isDirectionDiagonal direction =
+    (direction |> fst) * (direction |> snd) <> 0
+
+let checkPieceListForPin king direction pieceList =
+    match List.tryItem 0 pieceList,
+          List.tryItem 1 pieceList,
+          isDirectionDiagonal direction with
+    | Some firstPiece, _, _ when firstPiece.Color <> king.Color -> None
+    | Some firstPiece, Some secondPiece, _ when firstPiece.Color = secondPiece.Color -> None
+    | Some firstPiece, Some secondPiece, true ->
+        { firstPiece with
+            IsPinned = match secondPiece.PieceType, firstPiece.PieceType with
+                       | Bishop, Bishop
+                       | Bishop, Queen
+                       | Queen, Bishop
+                       | Queen, Queen -> false
+                       | Bishop, _
+                       | Queen, _ -> true
+                       | _ -> false }
+        |> Some
+    | Some firstPiece, Some secondPiece, false ->
+        { firstPiece with
+            IsPinned = match secondPiece.PieceType, firstPiece.PieceType with
+                       | Rook, Rook
+                       | Rook, Queen
+                       | Queen, Rook
+                       | Queen, Queen -> false
+                       | Rook, _
+                       | Queen, _ -> true
+                       | _ -> false }
+        |> Some
+    | _ -> None
+        
+        
+let updatePinnedPieces allPieces =
+    let allPieces =
         allPieces
-        |> List.filter(fun piece -> piece.Color = Black)
-        |> List.map (fun piece ->
-            getPieceCoverage piece allPieces)
+        |> List.map (fun piece -> { piece with IsPinned = false })
+
+    let directions =
+        [-1..1]
+        |> List.map
+            (fun fileDelta ->
+                [-1..1]
+                |> List.map
+                    (fun rankDelta -> fileDelta, rankDelta))
         |> List.concat
+        |> List.filter
+            (fun (fileDelta, rankDelta) -> fileDelta <> 0 || rankDelta <> 0)
+
+    let kings =
+        allPieces
+        |> List.filter (fun piece -> piece.PieceType = King)
+
+    let updatedPieces =     
+        kings
+        |> List.map
+            (fun king ->
+                directions
+                |> List.map
+                    (fun direction ->
+                        let pieceList = findAllPiecesInDirection king allPieces direction
+                        checkPieceListForPin king direction pieceList ))
+        |> List.concat
+        |> List.choose id
+
+    allPieces
+    |> List.map
+        (fun piece ->
+            if List.contains { piece with IsPinned = true } updatedPieces then
+                { piece with IsPinned = true }
+            else
+                piece )
+
+
+
+    
 
 

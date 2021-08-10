@@ -83,7 +83,7 @@ let prepareGameView (model : Model) (dispatch : Msg -> unit) =
                     ] [ str "Backward" ] ] ]
 
             div [Style [CSSProp.Height 400]] [
-                div [ Style [CSSProp.MarginTop "auto"; CSSProp.MarginBottom -20 ] ] [str (ChessPlayer.getPlayerName model.WhitePlayer)]
+                div [ Style [CSSProp.MarginTop "auto"; CSSProp.MarginBottom -20 ] ] [str (model.ChessGame.MovesList.Length * 50 |> string)]
             ]
         ]
         chessBoardView model

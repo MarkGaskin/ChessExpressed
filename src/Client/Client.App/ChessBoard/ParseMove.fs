@@ -3,6 +3,7 @@ module Client.App.ChessBoard.ParseMove
 open ChessPieces
 open ChessSquares
 open SquareCoverage
+open Fable.Core
 
 let parseFile c =
     match c with
@@ -37,7 +38,7 @@ let parseUnknown c =
 
 
 
-let parseMove (moveString:string) (pieces: Piece list) (colorToMove: PieceColor) =
+let parseMovement (moveString:string) (pieces: Piece list) (colorToMove: PieceColor) =
     match moveString.[0] with  
     | 'O' when moveString.Contains "O-O-O" ->
         pieces
@@ -58,8 +59,12 @@ let parseMove (moveString:string) (pieces: Piece list) (colorToMove: PieceColor)
                 | false, _, _ -> piece
                 | _, King, White -> { piece with Square = Square.create 7 1 }
                 | _, King, Black -> { piece with Square = Square.create 7 8 }
-                | _, Rook, White when piece.Square = Square.create 8 1 -> { piece with Square = Square.create 6 1}
-                | _, Rook, Black when piece.Square = Square.create 8 8 -> { piece with Square = Square.create 6 8}
+                | _, Rook, White when piece.Square = Square.create 8 1 ->
+                    JS.console.log "White castled short"
+                    { piece with Square = Square.create 6 1}
+                | _, Rook, Black when piece.Square = Square.create 8 8 -> 
+                    JS.console.log "Black castled short"
+                    { piece with Square = Square.create 6 8}
                 | _ -> piece)
     | _ when (moveString.Contains '=') ->
         // Promotion
@@ -94,14 +99,14 @@ let parseMove (moveString:string) (pieces: Piece list) (colorToMove: PieceColor)
             filteredPieces
             |> List.map
                 (fun piece ->
-                    if piece.PieceType = pieceType && piece.Color = colorToMove && List.contains square (getPieceMovement piece filteredPieces) then { piece with Square = square }
+                    if piece.PieceType = pieceType && piece.IsPinned |> not && piece.Color = colorToMove && List.contains square (getPieceMovement piece filteredPieces) then { piece with Square = square }
                     else piece )
         let complexUpdate pieceType =
             let filterFunction = parseUnknown moveString.[1]
             filteredPieces
             |> List.map
                 (fun piece ->
-                    if piece.PieceType = pieceType && piece.Color = colorToMove && filterFunction piece then { piece with Square = square }
+                    if piece.PieceType = pieceType && piece.IsPinned |> not && piece.Color = colorToMove && filterFunction piece then { piece with Square = square }
                     else piece )
         match moveString.[0] with
         | 'K' ->
@@ -139,7 +144,12 @@ let parseMove (moveString:string) (pieces: Piece list) (colorToMove: PieceColor)
             |> List.map
                 (fun piece ->
                     if piece.Color = colorToMove &&
+                       piece.IsPinned |> not &&
                        piece.PieceType = Pawn &&
                        piece.Square = Square.create (parseFile moveString.[0]) (if piece.Color = White then rank - 1 else rank + 1) then
                         { piece with Square = square }
                     else piece )
+
+let parseMove (moveString:string) (pieces: Piece list) (colorToMove: PieceColor) =
+    parseMovement moveString pieces colorToMove
+    |> updatePinnedPieces

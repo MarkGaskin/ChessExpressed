@@ -32,25 +32,25 @@ let createRankFen (pieces: Piece list) =
 
 let canCastleFen (allPieces: Piece list) =
     ( allPieces
-      |> List.tryFind ((=) {PieceType = Rook; Square = Square.create 8 1; Color = White})
+      |> List.tryFind ((=) {PieceType = Rook; Square = Square.create 8 1; Color = White; IsPinned = false })
       |> function
          | Some piece -> "K"
          | None -> "" )
     +
     ( allPieces
-      |> List.tryFind ((=) {PieceType = Rook; Square = Square.create 1 1; Color = White})
+      |> List.tryFind ((=) {PieceType = Rook; Square = Square.create 1 1; Color = White; IsPinned = false })
       |> function
          | Some piece -> "Q"
          | None -> "" )
     +
     ( allPieces
-      |> List.tryFind ((=) {PieceType = Rook; Square = Square.create 1 8; Color = Black})
+      |> List.tryFind ((=) {PieceType = Rook; Square = Square.create 1 8; Color = Black; IsPinned = false })
       |> function
          | Some piece -> "k"
          | None -> "" )
     +
     ( allPieces
-      |> List.tryFind ((=) {PieceType = Rook; Square = Square.create 8 8; Color = Black})
+      |> List.tryFind ((=) {PieceType = Rook; Square = Square.create 8 8; Color = Black; IsPinned = false })
       |> function
          | Some piece -> "q"
          | None -> "" )
